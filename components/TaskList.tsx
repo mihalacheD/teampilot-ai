@@ -17,6 +17,7 @@ type Task = {
 
 export function TaskList() {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null);
 
   const {
     register,
@@ -51,19 +52,31 @@ export function TaskList() {
     taskId: string,
     status: TaskStatus
   ) {
-    await fetch(`/api/tasks/${taskId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status }),
-    });
+    const previousTasks = tasks;
 
     setTasks((prev) =>
       prev.map((t) =>
         t.id === taskId ? { ...t, status } : t
       )
     );
-  }
 
+    setUpdatingTaskId(taskId);
+
+    try {
+      const res = await fetch(`/api/tasks/${taskId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+
+      if (!res.ok) throw new Error("Update failed");
+    } catch {
+      setTasks(previousTasks);
+      alert("Failed to update task");
+    } finally {
+      setUpdatingTaskId(null);
+    }
+  }
 
 
   return (
@@ -95,6 +108,7 @@ export function TaskList() {
           <TaskItem
             key={task.id}
             task={task}
+            isLoading={updatingTaskId === task.id}
             onStatusChange={updateTaskStatus}
           />
         ))}
