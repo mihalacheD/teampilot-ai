@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { createTaskSchema } from "@/lib/validators/task";
 import { NextResponse } from "next/server";
 
 //GET api tasks
@@ -17,14 +18,18 @@ export async function GET() {
 //POST api tasks
 export async function POST(req: Request) {
   const body = await req.json();
-  const { title, description, userId } = body;
 
-  if (!title || !userId) {
+  const result = createTaskSchema.safeParse(body);
+
+
+  if (!result.success) {
     return NextResponse.json(
-      { error: "Missing required fields" },
+      { errors: result.error.flatten() },
       { status: 400 }
     );
   }
+
+   const { title, description, userId } = result.data;
 
   const newTask = await prisma.task.create({
     data: {

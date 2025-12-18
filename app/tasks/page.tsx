@@ -1,9 +1,10 @@
+import { TaskList } from "../../components/TaskList";
 
-
-const page = () => {
+export default function TasksPage() {
   return (
-    <div>tasks</div>
-  )
+    <main className="p-6">
+      <h1 className="text-2xl font-semibold mb-4">Tasks</h1>
+      <TaskList />
+    </main>
+  );
 }
-
-export default page
