@@ -96,6 +96,22 @@ export function TaskList() {
     }
   }
 
+  async function deleteTask(taskId: string) {
+
+    const previousTasks = tasks;
+    setTasks((prev) => prev.filter((t) => t.id !== taskId));
+
+    try {
+      const res = await fetch(`/api/tasks/${taskId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Delete failed");
+    } catch {
+      setTasks(previousTasks);
+      alert("Failed to delete task");
+    }
+  }
+
 
   return (
     <div>
@@ -129,6 +145,7 @@ export function TaskList() {
             isLoading={updatingTaskId === task.id}
             onStatusChange={updateTaskStatus}
             onEdit={updateTaskTitle}
+            onDelete={deleteTask}
           />
         ))}
       </ul>

@@ -25,3 +25,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   return NextResponse.json(task);
 }
+
+export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
+
+  const { id } = await params;
+
+  await prisma.task.delete({
+    where: { id: id },
+  });
+  return NextResponse.json({ success: true });
+}
