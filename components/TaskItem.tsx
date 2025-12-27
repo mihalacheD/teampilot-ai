@@ -1,6 +1,8 @@
 "use client";
 
 import { TaskStatus, statusStyles } from "@/lib/constants/task-status";
+import { useState } from "react";
+
 
 
 type TaskItemProps = {
@@ -11,12 +13,39 @@ type TaskItemProps = {
   };
   isLoading?: boolean;
   onStatusChange: (id: string, status: TaskStatus) => void;
+  onEdit: (id: string, title: string) => void;
 };
 
-export function TaskItem({ task, isLoading, onStatusChange }: TaskItemProps) {
+export function TaskItem({ task, isLoading, onStatusChange, onEdit }: TaskItemProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [title, setTitle] = useState(task.title);
+
   return (
     <li className="border p-3 rounded-md flex justify-between items-center">
-      <span className="font-medium">{task.title}</span>
+      {isEditing ? (
+        <input
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            onEdit(task.id, title);
+            setIsEditing(false);
+          }
+        if (e.key === 'Escape') {
+          setTitle(task.title);
+          setIsEditing(false);
+        }
+        }}
+        className="border px-2 py-1 tesxt-sm rounded"
+        />
+      ):(
+        <span
+        onClick={() => setIsEditing(true)}
+        className="font-medium cursor-pointer hover:underline"
+        >
+          {task.title}
+        </span>
+    )}
 
       <div className="flex gap-2">
         {(["TODO", "IN_PROGRESS", "DONE"] as TaskStatus[]).map((status) => (

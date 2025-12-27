@@ -3,7 +3,8 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 const updateStatusSchema = z.object({
-  status: z.enum(['TODO', 'IN_PROGRESS', 'DONE']),
+  status: z.enum(['TODO', 'IN_PROGRESS', 'DONE']).optional(),
+  title: z.string().min(1).optional(),
 })
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -19,7 +20,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   const task = await prisma.task.update({
     where: { id: id },
-    data: { status: result.data.status },
+    data: result.data,
   });
 
   return NextResponse.json(task);

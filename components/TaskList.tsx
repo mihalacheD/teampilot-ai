@@ -78,6 +78,24 @@ export function TaskList() {
     }
   }
 
+  async function updateTaskTitle(taskId: string, title: string) {
+    const previousTasks = tasks;
+
+    setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, title } : t)));
+
+    try {
+      const res = await fetch(`/api/tasks/${taskId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title }),
+      });
+      if (!res.ok) throw new Error("Update failed");
+    } catch {
+      setTasks(previousTasks);
+      alert("Failed to update task");
+    }
+  }
+
 
   return (
     <div>
@@ -110,6 +128,7 @@ export function TaskList() {
             task={task}
             isLoading={updatingTaskId === task.id}
             onStatusChange={updateTaskStatus}
+            onEdit={updateTaskTitle}
           />
         ))}
       </ul>
