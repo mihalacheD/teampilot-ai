@@ -5,7 +5,11 @@ import { useTasks } from "@/hooks/useTask";
 import TaskForm from "./TaskForm";
 
 export function TaskList() {
-  const { tasks, updatingTaskId, createTask, updateTaskStatus, updateTaskTitle, deleteTask } = useTasks();
+  const { tasks, updatingTaskId, createTask, updateTaskStatus, updateTask, deleteTask } = useTasks();
+
+  const handleEdit = (id: string, updates: { title: string; description: string }) => {
+    updateTask(id, updates);
+  };
 
   return (
     <div>
@@ -18,7 +22,7 @@ export function TaskList() {
             task={task}
             isLoading={updatingTaskId === task.id}
             onStatusChange={updateTaskStatus}
-            onEdit={updateTaskTitle}
+            onEdit={handleEdit}
             onDelete={deleteTask}
           />
         ))}

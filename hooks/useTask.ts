@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 type Task = {
   id: string;
   title: string;
+  description: string;
   status: TaskStatus;
 };
 
@@ -59,18 +60,18 @@ export function useTasks() {
     }
   }
 
-  async function updateTaskTitle(taskId: string, title: string) {
+  async function updateTask(taskId: string, updates: Partial<Task>) {
     const previousTasks = tasks;
 
     setTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, title } : t))
+      prev.map((t) => (t.id === taskId ? { ...t, ...updates } : t))
     );
 
     try {
       const res = await fetch(`/api/tasks/${taskId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title }),
+        body: JSON.stringify(updates),
       });
       if (!res.ok) throw new Error("Update failed");
     } catch {
@@ -99,7 +100,7 @@ export function useTasks() {
     updatingTaskId,
     createTask,
     updateTaskStatus,
-    updateTaskTitle,
+    updateTask,
     deleteTask,
   };
 }
