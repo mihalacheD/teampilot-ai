@@ -1,143 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { createTaskSchema, CreateTaskInput } from "@/lib/validators/task";
 import { TaskItem } from "@/components/TaskItem";
-import { TaskStatus } from "@/lib/constants/task-status";
-
-
-
-type Task = {
-  id: string;
-  title: string;
-  status: TaskStatus;
-};
+import { useTasks } from "@/hooks/useTask";
+import TaskForm from "./TaskForm";
 
 export function TaskList() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null);
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<CreateTaskInput>({
-    resolver: zodResolver(createTaskSchema),
-  });
-
-  useEffect(() => {
-    fetch("/api/tasks")
-      .then((res) => res.json())
-      .then(setTasks);
-  }, []);
-
-  async function onSubmit(data: CreateTaskInput) {
-    const res = await fetch("/api/tasks", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-
-    if (res.ok) {
-      const newTask = await res.json();
-      setTasks((prev) => [newTask, ...prev]);
-      reset();
-    }
-  }
-
-  async function updateTaskStatus(
-    taskId: string,
-    status: TaskStatus
-  ) {
-    const previousTasks = tasks;
-
-    setTasks((prev) =>
-      prev.map((t) =>
-        t.id === taskId ? { ...t, status } : t
-      )
-    );
-
-    setUpdatingTaskId(taskId);
-
-    try {
-      const res = await fetch(`/api/tasks/${taskId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      });
-
-      if (!res.ok) throw new Error("Update failed");
-    } catch {
-      setTasks(previousTasks);
-      alert("Failed to update task");
-    } finally {
-      setUpdatingTaskId(null);
-    }
-  }
-
-  async function updateTaskTitle(taskId: string, title: string) {
-    const previousTasks = tasks;
-
-    setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, title } : t)));
-
-    try {
-      const res = await fetch(`/api/tasks/${taskId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title }),
-      });
-      if (!res.ok) throw new Error("Update failed");
-    } catch {
-      setTasks(previousTasks);
-      alert("Failed to update task");
-    }
-  }
-
-  async function deleteTask(taskId: string) {
-
-    const previousTasks = tasks;
-    setTasks((prev) => prev.filter((t) => t.id !== taskId));
-
-    try {
-      const res = await fetch(`/api/tasks/${taskId}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) throw new Error("Delete failed");
-    } catch {
-      setTasks(previousTasks);
-      alert("Failed to delete task");
-    }
-  }
-
+  const { tasks, updatingTaskId, createTask, updateTaskStatus, updateTaskTitle, deleteTask } = useTasks();
 
   return (
     <div>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-2 mb-4">
-        <input
-          {...register("title")}
-          placeholder="Task title"
-          className="border p-2 w-full"
-        />
-        {errors.title && (
-          <p className="text-red-500 text-sm">{errors.title.message}</p>
-        )}
-
-        <input
-          {...register("userId")}
-          placeholder="User ID"
-          className="border p-2 w-full"
-        />
-
-        <button className="bg-black text-white px-4 py-2">
-          Add task
-        </button>
-      </form>
+      <TaskForm onCreate={createTask} />
 
       <ul className="space-y-2">
-
         {tasks.map((task) => (
           <TaskItem
             key={task.id}
