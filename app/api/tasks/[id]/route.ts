@@ -1,6 +1,8 @@
-import { prisma } from '@/lib/prisma';
-import { NextResponse } from 'next/server';
-import { z } from 'zod';
+import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 const updateStatusSchema = z.object({
   status: z.enum(['TODO', 'IN_PROGRESS', 'DONE']).optional(),
@@ -9,14 +11,28 @@ const updateStatusSchema = z.object({
 })
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const { id } = await params;
-
   const body = await req.json();
   const result = updateStatusSchema.safeParse(body);
 
   if (!result.success) {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    return NextResponse.json({ error: "Invalid data" }, { status: 400 });
+  }
+
+  // ✅ Verifică dacă task-ul există și dacă user-ul are permisiune
+  const existingTask = await prisma.task.findUnique({ where: { id } });
+  if (!existingTask) {
+    return NextResponse.json({ error: "Task not found" }, { status: 404 });
+  }
+
+  // ✅ Employee poate edita doar task-urile proprii, Manager poate edita orice
+  if (session.user.role === "EMPLOYEE" && existingTask.userId !== session.user.id) {
+    return NextResponse.json({ error: "You can only edit your own tasks" }, { status: 403 });
   }
 
   const task = await prisma.task.update({
@@ -28,6 +44,15 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 }
 
 export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // ✅ Doar managerii pot șterge task-uri
+  if (session.user.role !== "MANAGER") {
+    return NextResponse.json({ error: "Only managers can delete tasks" }, { status: 403 });
+  }
 
   const { id } = await params;
 

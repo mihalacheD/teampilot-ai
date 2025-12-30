@@ -1,5 +1,4 @@
 import { TaskStatus } from "@/lib/constants/task-status";
-import { CreateTaskInput } from "@/lib/validators/task";
 import { useEffect, useState } from "react";
 
 type Task = {
@@ -9,7 +8,13 @@ type Task = {
   status: TaskStatus;
 };
 
+type CreateTaskClientInput = {
+  title: string;
+  description?: string;
+};
+
 export function useTasks() {
+
   const [tasks, setTasks] = useState<Task[]>([]);
   const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null);
 
@@ -19,7 +24,8 @@ export function useTasks() {
       .then(setTasks);
   }, []);
 
-  async function createTask(data: CreateTaskInput) {
+  async function createTask(data: CreateTaskClientInput) {
+
     const res = await fetch("/api/tasks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -27,11 +33,11 @@ export function useTasks() {
     });
 
     if (!res.ok) {
-      throw new Error("Failed to create task");
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || "Failed to create task");
     }
 
     const newTask = await res.json();
-
     setTasks((prev) => [newTask, ...prev]);
   }
 

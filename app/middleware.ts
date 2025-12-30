@@ -1,42 +1,33 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../lib/auth";
-
-// definește căi care trebuie protejate și roluri
-const protectedRoutes: { path: string; role: "MANAGER" | "EMPLOYEE" }[] = [
-  { path: "/dashboard", role: "MANAGER" },
-  { path: "/api/tasks", role: "MANAGER" },
-];
+import { getToken } from "next-auth/jwt";
 
 export async function middleware(req: NextRequest) {
-  const url = req.nextUrl.clone();
+  const { pathname } = req.nextUrl;
 
-  // verifică dacă ruta curentă e protejată
-  const route = protectedRoutes.find((r) => req.nextUrl.pathname.startsWith(r.path));
-  if (!route) {
-    return NextResponse.next(); // nu e protejată, trece mai departe
+  // protejăm DOAR dashboard
+  if (!pathname.startsWith("/dashboard")) {
+    return NextResponse.next();
   }
 
-  // obține sesiunea server-side
-  const session = await getServerSession(authOptions);
+  const token = await getToken({
+    req,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
 
-  if (!session) {
-    // nu e logat → redirect la login
-    url.pathname = "/auth/signin";
-    return NextResponse.redirect(url);
+  // nu e logat
+  if (!token) {
+    return NextResponse.redirect(new URL("/auth/signin", req.url));
   }
 
-  if (session.user.role !== route.role) {
-    // logat, dar fără rol → 403
-    return new Response("Forbidden", { status: 403 });
+  // logat dar nu MANAGER → home
+  if (token.role !== "MANAGER") {
+    return NextResponse.redirect(new URL("/", req.url));
   }
 
-  // totul ok → trece mai departe
   return NextResponse.next();
 }
 
-// ce foldere/rute rulează middleware
 export const config = {
-  matcher: ["/dashboard/:path*", "/api/:path*"], // poți adăuga rute noi aici
+  matcher: ["/dashboard/:path*"],
 };
