@@ -7,7 +7,7 @@ import { requireManagerSession } from "@/lib/authServer";
 // GET /api/tasks
 export async function GET() {
   const session = await requireManagerSession();
-  if (!(session instanceof Object)) return session; // 401/403 response
+  if (!(session instanceof Object)) return session;
 
   const tasks = await prisma.task.findMany({
     orderBy: { createdAt: "desc" },

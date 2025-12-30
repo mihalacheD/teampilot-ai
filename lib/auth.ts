@@ -49,7 +49,6 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async jwt({ token, user }) {
-      // La primul login, user va fi prezent
       if (user) {
         token.id = user.id;
         token.role = user.role;

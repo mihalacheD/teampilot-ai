@@ -31,7 +31,6 @@ export default function RegisterPage() {
       });
 
       if (res.ok) {
-        // optional: redirect to sign in
         router.push("/auth/signin");
       } else {
         const json = await res.json();

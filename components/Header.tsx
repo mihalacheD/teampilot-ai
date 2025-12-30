@@ -20,10 +20,11 @@ export default function Header() {
             </Link>
           )}
 
-
-          <Link href="/tasks" className="hover:underline">
-            Tasks
-          </Link>
+          {session && (
+            <Link href="/tasks" className="hover:underline">
+              Tasks
+            </Link>
+          )}
 
           {session ? (
             <button
