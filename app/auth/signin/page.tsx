@@ -42,15 +42,17 @@ export default function SignInPage() {
       return;
     }
 
-    // NextAuth returns { ok: boolean, error?: string }
-    // redirect manually on success
-    // Note: when redirect: false, res.ok indicates success
     if (res.ok) {
-      // go to dashboard (manager) or to homepage
-      router.push("/dashboard");
-    } else {
-      setErrorMessage(res.error ?? "Invalid credentials");
+      const sessionRes = await fetch("/api/auth/session");
+      const session = await sessionRes.json();
+
+      if (session?.user?.role === "MANAGER") {
+        router.push("/dashboard");
+      } else {
+        router.push("/");
+      }
     }
+
   }
 
   return (

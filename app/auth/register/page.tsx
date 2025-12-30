@@ -37,6 +37,7 @@ export default function RegisterPage() {
         const json = await res.json();
         setErrorMessage(json?.error || "Registration failed");
       }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       setErrorMessage("Network error");
     }

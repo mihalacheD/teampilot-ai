@@ -3,12 +3,6 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
 export async function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
-
-  // protejăm DOAR dashboard
-  if (!pathname.startsWith("/dashboard")) {
-    return NextResponse.next();
-  }
 
   const token = await getToken({
     req,
@@ -18,11 +12,6 @@ export async function middleware(req: NextRequest) {
   // nu e logat
   if (!token) {
     return NextResponse.redirect(new URL("/auth/signin", req.url));
-  }
-
-  // logat dar nu MANAGER → home
-  if (token.role !== "MANAGER") {
-    return NextResponse.redirect(new URL("/", req.url));
   }
 
   return NextResponse.next();
