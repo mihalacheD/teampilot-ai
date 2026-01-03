@@ -49,10 +49,10 @@ export function TaskItem({ task, isLoading, onStatusChange, onEdit, onDelete }: 
   };
 
   return (
-    <li className="group bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-all">
-      <div className="flex justify-between items-start gap-4">
+    <li className="group bg-white rounded-2xl border border-gray-200 p-4 md:p-5 shadow-sm hover:shadow-md transition-all">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-3 md:gap-4">
         {/* Content Area */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 order-2 md:order-1">
           {isEditing ? (
             <div className="space-y-3">
               <input
@@ -145,7 +145,7 @@ export function TaskItem({ task, isLoading, onStatusChange, onEdit, onDelete }: 
         </div>
 
         {/* Actions Area */}
-        <div className="flex flex-col items-end gap-3 shrink-0">
+        <div className="flex md:flex-col items-center md:items-end justify-between md:justify-start gap-2 md:gap-3 shrink-0 order-1 md:order-2">
           {/* Status Buttons */}
           <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
             {(["TODO", "IN_PROGRESS", "DONE"] as TaskStatus[]).map((status) => (
@@ -153,13 +153,16 @@ export function TaskItem({ task, isLoading, onStatusChange, onEdit, onDelete }: 
                 key={status}
                 disabled={isLoading || !canChangeStatus}
                 onClick={() => canChangeStatus && onStatusChange(task.id, status)}
-                className={`px-3 py-1.5 text-[10px] font-bold rounded-md transition-all ${task.status === status
+                className={`px-2 md:px-3 py-1 md:py-1.5 text-[9px] md:text-[10px] font-bold rounded-md transition-all ${task.status === status
                     ? statusStyles[status]
                     : "text-gray-500 hover:bg-white hover:text-gray-700"
                   } ${isLoading || !canChangeStatus ? "opacity-50 cursor-not-allowed" : ""}`}
                 title={!canChangeStatus ? "Only the task owner can change status" : ""}
               >
-                {status.replace("_", " ")}
+                <span className="hidden sm:inline">{status.replace("_", " ")}</span>
+                <span className="sm:hidden">
+                  {status === "TODO" ? "TO" : status === "IN_PROGRESS" ? "IP" : "DN"}
+                </span>
               </button>
             ))}
           </div>
@@ -173,14 +176,14 @@ export function TaskItem({ task, isLoading, onStatusChange, onEdit, onDelete }: 
                 }
               }}
               disabled={isLoading}
-              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg md:opacity-0 md:group-hover:opacity-100 transition-all"
               title="Delete task"
             >
               <Trash2 className="w-4 h-4" />
             </button>
           ) : (
             <div
-              className="p-2 text-gray-300 cursor-not-allowed opacity-0 group-hover:opacity-100 transition-opacity"
+              className="p-2 text-gray-300 cursor-not-allowed md:opacity-0 md:group-hover:opacity-100 transition-opacity"
               title="Only managers can delete tasks"
             >
               <Lock className="w-4 h-4" />

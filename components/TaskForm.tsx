@@ -15,7 +15,7 @@ type TaskFormProps = {
 
 const TaskForm = ({ onCreate }: TaskFormProps) => {
   const { data: session, status } = useSession();
-  
+
   const {
     register,
     handleSubmit,
@@ -27,6 +27,7 @@ const TaskForm = ({ onCreate }: TaskFormProps) => {
   });
 
   const descriptionValue = useWatch({ control, name: "description" }) || "";
+  const titleValue = useWatch({ control, name: "title" }) || "";
 
   if (status === "loading") {
     return (
@@ -52,11 +53,12 @@ const TaskForm = ({ onCreate }: TaskFormProps) => {
   }
 
   return (
-    <form 
-      onSubmit={handleSubmit(onSubmit)} 
+    <form
+      onSubmit={handleSubmit(onSubmit)}
       className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-4 hover:shadow-md transition-shadow"
     >
-      <div className="flex items-center gap-2 mb-2">
+      {/* Form Header */}
+      <div className="flex items-center gap-2 mb-6">
         <div className="w-8 h-8 bg-linear-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
           <Plus className="w-5 h-5 text-white" />
         </div>
@@ -68,16 +70,24 @@ const TaskForm = ({ onCreate }: TaskFormProps) => {
         <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
           Task Title <span className="text-red-500">*</span>
         </label>
+
         <input
           id="title"
           {...register("title")}
           placeholder="Enter task title..."
-          className={`w-full px-4 py-3 border rounded-xl outline-none transition-all ${
-            errors.title
-              ? "border-red-300 focus:ring-2 focus:ring-red-200 focus:border-red-400"
-              : "border-gray-200 focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
-          }`}
+          className={`w-full px-4 py-3 border rounded-xl outline-none transition-all ${errors.title
+            ? "border-red-300 focus:ring-2 focus:ring-red-200 focus:border-red-400"
+            : "border-gray-200 focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+            }`}
         />
+
+        <div className="flex justify-end items-center mt-1.5">
+          <p className={`text-xs font-medium ${titleValue.length > 100 ? "text-red-500" : "text-gray-400"
+            }`}>
+            {titleValue.length}/100
+          </p>
+        </div>
+
         {errors.title && (
           <p className="text-red-500 text-sm mt-1.5 flex items-center gap-1">
             <span className="text-red-500">•</span>
@@ -102,9 +112,8 @@ const TaskForm = ({ onCreate }: TaskFormProps) => {
           <p className="text-xs text-gray-500">
             Provide context to help team members understand the task
           </p>
-          <p className={`text-xs font-medium ${
-            descriptionValue.length > 500 ? "text-red-500" : "text-gray-400"
-          }`}>
+          <p className={`text-xs font-medium ${descriptionValue.length > 500 ? "text-red-500" : "text-gray-400"
+            }`}>
             {descriptionValue.length}/500
           </p>
         </div>
