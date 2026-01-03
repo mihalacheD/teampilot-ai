@@ -34,26 +34,23 @@ export default function Header() {
               <div className="h-9 w-20 bg-gray-100 animate-pulse rounded-lg"></div>
             ) : session ? (
               <>
-                {/* Dashboard Link (Only for Managers) */}
-                {session.user.role === "MANAGER" && (
-                  <Link
-                    href="/dashboard"
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${isActive("/dashboard")
-                        ? "bg-blue-100 text-blue-700"
-                        : "text-gray-700 hover:bg-gray-100"
-                      }`}
-                  >
-                    <LayoutDashboard className="w-4 h-4" />
-                    <span className="hidden sm:inline">Dashboard</span>
-                  </Link>
-                )}
+                <Link
+                  href="/dashboard"
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${isActive("/dashboard")
+                    ? "bg-blue-100 text-blue-700"
+                    : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  <span className="hidden sm:inline">Dashboard</span>
+                </Link>
 
                 {/* Tasks Link */}
                 <Link
                   href="/tasks"
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${isActive("/tasks")
-                      ? "bg-blue-100 text-blue-700"
-                      : "text-gray-700 hover:bg-gray-100"
+                    ? "bg-blue-100 text-blue-700"
+                    : "text-gray-700 hover:bg-gray-100"
                     }`}
                 >
                   <CheckSquare className="w-4 h-4" />
