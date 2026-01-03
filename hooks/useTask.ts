@@ -6,6 +6,7 @@ type Task = {
   title: string;
   description: string;
   status: TaskStatus;
+  userId: string;
 };
 
 type CreateTaskClientInput = {
@@ -14,18 +15,31 @@ type CreateTaskClientInput = {
 };
 
 export function useTasks() {
-
   const [tasks, setTasks] = useState<Task[]>([]);
   const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null);
 
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
-    fetch("/api/tasks")
-      .then((res) => res.json())
-      .then(setTasks);
+    async function fetchTasks() {
+      try {
+        setIsLoading(true);
+        const res = await fetch("/api/tasks");
+        if (!res.ok) throw new Error("Failed to fetch tasks");
+        const data = await res.json();
+        setTasks(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchTasks();
   }, []);
 
   async function createTask(data: CreateTaskClientInput) {
-
     const res = await fetch("/api/tasks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -103,6 +117,8 @@ export function useTasks() {
 
   return {
     tasks,
+    isLoading,
+    error,
     updatingTaskId,
     createTask,
     updateTaskStatus,
