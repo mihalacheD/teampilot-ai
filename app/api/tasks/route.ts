@@ -2,14 +2,20 @@ import { prisma } from "@/lib/prisma";
 import { createTaskSchema } from "@/lib/validators/task";
 import { NextResponse } from "next/server";
 import { requireManagerSession } from "@/lib/authServer";
-
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 // GET /api/tasks
 export async function GET() {
-  const session = await requireManagerSession();
-  if (!(session instanceof Object)) return session;
+  const session = await getServerSession(authOptions);
+
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const isManager = session.user.role === "MANAGER";
 
   const tasks = await prisma.task.findMany({
+    where: isManager ? {} : { userId: session.user.id },
     orderBy: { createdAt: "desc" },
     include: {
       user: {
@@ -34,9 +40,6 @@ export async function POST(req: Request) {
     return resultSession;
   }
 
-  // Din acest punct, TypeScript știe sigur că resultSession este Session
-  const session = resultSession;
-
   try {
     const body = await req.json();
     const validation = createTaskSchema.safeParse(body);
@@ -47,14 +50,24 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+    const { title, description, userId } = validation.data;
 
-    const { title, description } = validation.data;
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "Assigned user not found" },
+        { status: 404 }
+      );
+    }
 
     const newTask = await prisma.task.create({
       data: {
         title,
         description,
-        userId: session.user.id,
+        userId,
       },
     });
 

@@ -1,4 +1,5 @@
 import { TaskStatus } from "@/lib/constants/task-status";
+import { CreateTaskApiInput } from "@/lib/validators/task";
 import { useEffect, useState } from "react";
 
 type Task = {
@@ -7,11 +8,6 @@ type Task = {
   description: string;
   status: TaskStatus;
   userId: string;
-};
-
-type CreateTaskClientInput = {
-  title: string;
-  description?: string;
 };
 
 export function useTasks() {
@@ -39,7 +35,7 @@ export function useTasks() {
     fetchTasks();
   }, []);
 
-  async function createTask(data: CreateTaskClientInput) {
+  async function createTask(data: CreateTaskApiInput) {
     const res = await fetch("/api/tasks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

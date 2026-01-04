@@ -3,18 +3,36 @@
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  CreateTaskApiInput,
   CreateTaskClientInput,
   createTaskClientSchema,
 } from "@/lib/validators/task";
 import { useSession } from "next-auth/react";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, UserCircle } from "lucide-react";
+import { useEffect, useState } from "react";
 
 type TaskFormProps = {
-  onCreate: (data: CreateTaskClientInput) => Promise<void>;
+  onCreate: (data: CreateTaskApiInput) => Promise<void>;
 };
 
 const TaskForm = ({ onCreate }: TaskFormProps) => {
   const { data: session, status } = useSession();
+
+  const [employees, setEmployees] = useState<
+    { id: string; name: string; email: string }[]
+  >([]);
+  const [selectedUserId, setSelectedUserId] = useState("");
+
+  useEffect(() => {
+    async function fetchEmployees() {
+      const res = await fetch("/api/users");
+      if (res.ok) {
+        setEmployees(await res.json());
+      }
+    }
+
+    fetchEmployees();
+  }, []);
 
   const {
     register,
@@ -43,18 +61,28 @@ const TaskForm = ({ onCreate }: TaskFormProps) => {
     return null;
   }
 
-  async function onSubmit(data: CreateTaskClientInput) {
+  const handleFormSubmit = async (data: CreateTaskClientInput) => {
+    if (!selectedUserId) {
+      return;
+    }
+
     try {
-      await onCreate(data);
+      await onCreate({
+        title: data.title,
+        description: data.description,
+        userId: selectedUserId,
+      });
+
       reset();
+      setSelectedUserId("");
     } catch (error) {
       console.error("Failed to create task:", error);
     }
-  }
+  };
 
   return (
     <form
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={handleSubmit(handleFormSubmit)}
       className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-4 hover:shadow-md transition-shadow"
     >
       {/* Form Header */}
@@ -76,24 +104,27 @@ const TaskForm = ({ onCreate }: TaskFormProps) => {
           {...register("title")}
           placeholder="Enter task title..."
           className={`w-full px-4 py-3 border rounded-xl outline-none transition-all ${errors.title
-            ? "border-red-300 focus:ring-2 focus:ring-red-200 focus:border-red-400"
-            : "border-gray-200 focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+              ? "border-red-300 focus:ring-2 focus:ring-red-200 focus:border-red-400"
+              : "border-gray-200 focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
             }`}
         />
 
-        <div className="flex justify-end items-center mt-1.5">
-          <p className={`text-xs font-medium ${titleValue.length > 100 ? "text-red-500" : "text-gray-400"
-            }`}>
+        <div className="flex justify-between items-center mt-1.5">
+          {errors.title ? (
+            <p className="text-red-500 text-sm flex items-center gap-1">
+              <span className="text-red-500">•</span>
+              {errors.title.message}
+            </p>
+          ) : (
+            <div></div>
+          )}
+          <p
+            className={`text-xs font-medium ${titleValue.length > 100 ? "text-red-500" : "text-gray-400"
+              }`}
+          >
             {titleValue.length}/100
           </p>
         </div>
-
-        {errors.title && (
-          <p className="text-red-500 text-sm mt-1.5 flex items-center gap-1">
-            <span className="text-red-500">•</span>
-            {errors.title.message}
-          </p>
-        )}
       </div>
 
       {/* Description Textarea */}
@@ -112,17 +143,71 @@ const TaskForm = ({ onCreate }: TaskFormProps) => {
           <p className="text-xs text-gray-500">
             Provide context to help team members understand the task
           </p>
-          <p className={`text-xs font-medium ${descriptionValue.length > 500 ? "text-red-500" : "text-gray-400"
-            }`}>
+          <p
+            className={`text-xs font-medium ${descriptionValue.length > 500 ? "text-red-500" : "text-gray-400"
+              }`}
+          >
             {descriptionValue.length}/500
           </p>
         </div>
       </div>
 
+      {/* User Assignment Dropdown - STILIZAT */}
+      <div>
+        <label htmlFor="assignee" className="block text-sm font-medium text-gray-700 mb-2">
+          Assign to <span className="text-red-500">*</span>
+        </label>
+        <div className="relative">
+          {/* Icon stânga */}
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <UserCircle className="w-5 h-5 text-gray-400" />
+          </div>
+
+          {/* Dropdown */}
+          <select
+            id="assignee"
+            value={selectedUserId}
+            onChange={(e) => setSelectedUserId(e.target.value)}
+            className={`w-full pl-10 pr-10 py-3 border rounded-xl outline-none transition-all appearance-none bg-white cursor-pointer ${!selectedUserId
+                ? "border-red-300 focus:ring-2 focus:ring-red-200 focus:border-red-400 text-gray-400"
+                : "border-gray-200 focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+              }`}
+            required
+          >
+            <option value="" disabled>
+              Select an employee to assign this task
+            </option>
+            {employees.map((u) => (
+              <option key={u.id} value={u.id} className="text-gray-900">
+                {u.name} • {u.email}
+              </option>
+            ))}
+          </select>
+
+          {/* Chevron icon dreapta */}
+          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+            <svg
+              className="h-5 w-5 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </div>
+        </div>
+
+      </div>
+
       {/* Submit Button */}
       <button
         type="submit"
-        disabled={isSubmitting}
+        disabled={isSubmitting || !selectedUserId}
         className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow-md disabled:cursor-not-allowed"
       >
         {isSubmitting ? (

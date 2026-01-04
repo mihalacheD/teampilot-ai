@@ -13,6 +13,11 @@ type TaskItemProps = {
     description: string;
     status: TaskStatus;
     userId: string;
+    user?: {
+      id: string;
+      name: string | null;
+      email: string | null;
+    };
   };
   isLoading?: boolean;
   onStatusChange: (id: string, status: TaskStatus) => void;
@@ -31,6 +36,12 @@ export function TaskItem({ task, isLoading, onStatusChange, onEdit, onDelete }: 
 
   const userRole = session.user.role as "MANAGER" | "EMPLOYEE";
   const currentUserId = session.user.id;
+
+  const assignedLabel =
+    task.user?.name ||
+    task.user?.email ||
+    (task.userId === currentUserId ? "You" : "Unknown");
+
 
   const canEdit = canEditTask(userRole, task.userId, currentUserId);
   const canDelete = canDeleteTask(userRole, task.userId, currentUserId);
@@ -89,14 +100,33 @@ export function TaskItem({ task, isLoading, onStatusChange, onEdit, onDelete }: 
           ) : (
             <>
               <div className="flex items-start justify-between mb-2">
-                <h3
-                  onClick={() => canEdit && setIsEditing(true)}
-                  className={`text-base font-semibold text-gray-900 flex-1 ${canEdit ? "cursor-pointer hover:text-blue-600" : "cursor-default"
-                    } transition-colors`}
-                >
-                  {task.title}
-                  {!canEdit && <Lock className="inline ml-2 w-3.5 h-3.5 text-gray-400" />}
-                </h3>
+                <div className="flex flex-wrap items-center gap-2 mb-1">
+                  <h3
+                    onClick={() => canEdit && setIsEditing(true)}
+                    className={`text-base font-semibold text-gray-900 ${canEdit
+                      ? "cursor-pointer hover:text-blue-600"
+                      : "cursor-default"
+                      } transition-colors`}
+                  >
+                    {task.title}
+                    {!canEdit && <Lock className="inline ml-2 w-3.5 h-3.5 text-gray-400" />}
+                  </h3>
+
+                  {/* Assigned badge */}
+                  {task.user && (
+                    <span
+                      className={`px-2 py-0.5 text-[10px] font-semibold rounded-full border
+    ${task.userId === currentUserId
+                          ? "bg-green-50 text-green-700 border-green-200"
+                          : "bg-indigo-50 text-indigo-700 border-indigo-200"
+                        }`}
+                    >
+                      Assigned to {assignedLabel}
+                    </span>
+
+                  )}
+                </div>
+
 
                 {canEdit && !isEditing && (
                   <button
@@ -154,8 +184,8 @@ export function TaskItem({ task, isLoading, onStatusChange, onEdit, onDelete }: 
                 disabled={isLoading || !canChangeStatus}
                 onClick={() => canChangeStatus && onStatusChange(task.id, status)}
                 className={`px-2 md:px-3 py-1 md:py-1.5 text-[9px] md:text-[10px] font-bold rounded-md transition-all ${task.status === status
-                    ? statusStyles[status]
-                    : "text-gray-500 hover:bg-white hover:text-gray-700"
+                  ? statusStyles[status]
+                  : "text-gray-500 hover:bg-white hover:text-gray-700"
                   } ${isLoading || !canChangeStatus ? "opacity-50 cursor-not-allowed" : ""}`}
                 title={!canChangeStatus ? "Only the task owner can change status" : ""}
               >
