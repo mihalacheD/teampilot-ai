@@ -20,8 +20,7 @@ export function canEditTask(
   taskUserId: string,
   currentUserId: string
 ) {
-  if (userRole === "MANAGER") return true;
-  return taskUserId === currentUserId; // Employee poate edita doar task-urile lui
+  return userRole === "MANAGER"; // Doar Managerul poate edita orice task
 }
 
 export function canDeleteTask(

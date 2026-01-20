@@ -12,6 +12,7 @@ import DashboardCard from "@/components/DashboardCard";
 import TeamTaskPreview from "@/components/TeamTaskPreview";
 import MetricBar from "@/components/MetricBar";
 import StatCard from "@/components/StatCard";
+import { calculateMetricsPercentages } from "@/lib/task-metrics";
 
 type Props = {
   data: {
@@ -35,6 +36,14 @@ type Props = {
 };
 
 export default function ManagerDashboard({ data }: Props) {
+
+
+  const percentages = calculateMetricsPercentages(
+    data.metrics,
+    data.stats.totalTasks
+  );
+
+
   return (
     <div className="space-y-6">
       {/* Quick Stats */}
@@ -51,7 +60,7 @@ export default function ManagerDashboard({ data }: Props) {
           title="Team Members"
           value={data.stats.teamMembers.toString()}
           subtitle="All active"
-          color="purple"
+          color="blue"
         />
         <StatCard
           icon={<TrendingUp className="w-6 h-6" />}
@@ -65,7 +74,7 @@ export default function ManagerDashboard({ data }: Props) {
           title="Productivity"
           value={`${data.stats.completionRate}%`}
           subtitle="Tasks completed"
-          color="yellow"
+          color="purple"
         />
 
       </div>
@@ -96,28 +105,10 @@ export default function ManagerDashboard({ data }: Props) {
         description="Completion rates & workload"
         color="green"
       >
+        <MetricBar label="To Do" percentage={percentages.todoPct} status="TODO" />
+        <MetricBar label="In Progress" percentage={percentages.inProgressPct} status="IN_PROGRESS" />
+        <MetricBar label="Done" percentage={percentages.donePct} status="DONE" />
 
-        <MetricBar
-          label="To Do"
-          percentage={Math.round(
-            (data.metrics.todo / data.stats.totalTasks) * 100
-          )}
-          color="red"
-        />
-        <MetricBar
-          label="In Progress"
-          percentage={Math.round(
-            (data.metrics.inProgress / data.stats.totalTasks) * 100
-          )}
-          color="yellow"
-        />
-        <MetricBar
-          label="Done"
-          percentage={Math.round(
-            (data.metrics.done / data.stats.totalTasks) * 100
-          )}
-          color="green"
-        />
       </DashboardCard>
 
       {/* AI Insights Banner IN PROGRESS*/}

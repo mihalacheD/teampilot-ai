@@ -25,12 +25,12 @@ export default function SignInPage() {
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
   });
-  
+
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   async function onSubmit(data: FormValues) {
     setErrorMessage(null);
-    
+
     const res = await signIn("credentials", {
       redirect: false,
       email: data.email,
@@ -45,11 +45,8 @@ export default function SignInPage() {
     if (res.ok) {
       const sessionRes = await fetch("/api/auth/session");
       const session = await sessionRes.json();
-      
-      if (session?.user?.role === "MANAGER") {
-        router.push("/dashboard");
-      } else {
-        router.push("/tasks");
+      if (session) {
+        router.push("/")
       }
     } else {
       setErrorMessage("Invalid email or password");
@@ -69,7 +66,7 @@ export default function SignInPage() {
               TeamPilot AI
             </span>
           </Link>
-          
+
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Welcome back
           </h1>
@@ -94,11 +91,10 @@ export default function SignInPage() {
                   id="email"
                   {...register("email")}
                   type="email"
-                  className={`w-full pl-10 pr-4 py-3 border rounded-xl outline-none transition-all ${
-                    errors.email
-                      ? "border-red-300 focus:ring-2 focus:ring-red-200 focus:border-red-400"
-                      : "border-gray-300 focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
-                  }`}
+                  className={`w-full pl-10 pr-4 py-3 border rounded-xl outline-none transition-all ${errors.email
+                    ? "border-red-300 focus:ring-2 focus:ring-red-200 focus:border-red-400"
+                    : "border-gray-300 focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                    }`}
                   placeholder="you@example.com"
                 />
               </div>
@@ -123,11 +119,10 @@ export default function SignInPage() {
                   id="password"
                   {...register("password")}
                   type="password"
-                  className={`w-full pl-10 pr-4 py-3 border rounded-xl outline-none transition-all ${
-                    errors.password
-                      ? "border-red-300 focus:ring-2 focus:ring-red-200 focus:border-red-400"
-                      : "border-gray-300 focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
-                  }`}
+                  className={`w-full pl-10 pr-4 py-3 border rounded-xl outline-none transition-all ${errors.password
+                    ? "border-red-300 focus:ring-2 focus:ring-red-200 focus:border-red-400"
+                    : "border-gray-300 focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                    }`}
                   placeholder="••••••••"
                 />
               </div>

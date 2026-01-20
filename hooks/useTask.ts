@@ -8,6 +8,7 @@ type Task = {
   description: string;
   status: TaskStatus;
   userId: string;
+  dueDate?: string | null;
 };
 
 export function useTasks() {

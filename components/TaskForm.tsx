@@ -71,6 +71,7 @@ const TaskForm = ({ onCreate }: TaskFormProps) => {
         title: data.title,
         description: data.description,
         userId: selectedUserId,
+        dueDate: data.dueDate ? data.dueDate : null,
       });
 
       reset();
@@ -104,8 +105,8 @@ const TaskForm = ({ onCreate }: TaskFormProps) => {
           {...register("title")}
           placeholder="Enter task title..."
           className={`w-full px-4 py-3 border rounded-xl outline-none transition-all ${errors.title
-              ? "border-red-300 focus:ring-2 focus:ring-red-200 focus:border-red-400"
-              : "border-gray-200 focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+            ? "border-red-300 focus:ring-2 focus:ring-red-200 focus:border-red-400"
+            : "border-gray-200 focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
             }`}
         />
 
@@ -119,10 +120,10 @@ const TaskForm = ({ onCreate }: TaskFormProps) => {
             <div></div>
           )}
           <p
-            className={`text-xs font-medium ${titleValue.length > 100 ? "text-red-500" : "text-gray-400"
+            className={`text-xs font-medium ${titleValue.length > 50 ? "text-red-500" : "text-gray-400"
               }`}
           >
-            {titleValue.length}/100
+            {titleValue.length}/50
           </p>
         </div>
       </div>
@@ -152,6 +153,22 @@ const TaskForm = ({ onCreate }: TaskFormProps) => {
         </div>
       </div>
 
+      {/* Due Date */}
+      <div>
+        <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700 mb-2">
+          Due date <span className="text-gray-400 text-xs">(optional)</span>
+        </label>
+
+        <input
+          type="date"
+          id="dueDate"
+          {...register("dueDate")}
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none
+      focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-all"
+        />
+      </div>
+
+
       {/* User Assignment Dropdown - STILIZAT */}
       <div>
         <label htmlFor="assignee" className="block text-sm font-medium text-gray-700 mb-2">
@@ -169,8 +186,8 @@ const TaskForm = ({ onCreate }: TaskFormProps) => {
             value={selectedUserId}
             onChange={(e) => setSelectedUserId(e.target.value)}
             className={`w-full pl-10 pr-10 py-3 border rounded-xl outline-none transition-all appearance-none bg-white cursor-pointer ${!selectedUserId
-                ? "border-red-300 focus:ring-2 focus:ring-red-200 focus:border-red-400 text-gray-400"
-                : "border-gray-200 focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+              ? "border-red-300 focus:ring-2 focus:ring-red-200 focus:border-red-400 text-gray-400"
+              : "border-gray-200 focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
               }`}
             required
           >

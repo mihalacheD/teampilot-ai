@@ -25,13 +25,14 @@ model User {
 }
 
 model Task {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   title       String
-  description String?  @db.Text
-  status      Status   @default(TODO)
+  description String?   @db.Text
+  status      Status    @default(TODO)
   userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  createdAt   DateTime @default(now())
+  user        User      @relation(fields: [userId], references: [id])
+  createdAt   DateTime  @default(now())
+  dueDate     DateTime?
 }
 
 model Account {

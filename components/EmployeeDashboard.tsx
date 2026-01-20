@@ -11,6 +11,7 @@ import Link from "next/link";
 import DashboardCard from "@/components/DashboardCard";
 import StatCard from "@/components/StatCard";
 import TaskPreview from "@/components/TaskPreview";
+import { TaskStatus } from "@/lib/constants/task-status";
 
 type Props = {
   data: {
@@ -23,7 +24,7 @@ type Props = {
     recentTasks: {
       id: string;
       title: string;
-      status: string;
+      status: TaskStatus;
     }[];
   };
 };
@@ -45,7 +46,7 @@ export default function EmployeeDashboard({ data }: Props) {
           title="In Progress"
           value={data.stats.inProgress.toString()}
           subtitle="Currently working on"
-          color="yellow"
+          color="purple"
         />
         <StatCard
           icon={<Target className="w-6 h-6" />}

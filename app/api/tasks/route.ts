@@ -50,7 +50,7 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    const { title, description, userId } = validation.data;
+    const { title, description, userId, dueDate } = validation.data;
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -68,6 +68,7 @@ export async function POST(req: Request) {
         title,
         description,
         userId,
+        dueDate: dueDate ? new Date(dueDate) : null,
       },
     });
 

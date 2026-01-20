@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
-import { Sparkles, LogOut, LayoutDashboard, CheckSquare } from "lucide-react";
+import { Sparkles, LogOut, LayoutDashboard, CheckSquare, Users2 } from "lucide-react";
 
 export default function Header() {
   const { data: session, status } = useSession();
@@ -56,6 +56,20 @@ export default function Header() {
                   <CheckSquare className="w-4 h-4" />
                   <span className="hidden sm:inline">Tasks</span>
                 </Link>
+
+                {/* Team Link - Vizibil DOAR pentru Manager */}
+                {session.user.role === "MANAGER" && (
+                  <Link
+                    href="/team"
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${isActive("/team")
+                        ? "bg-blue-100 text-blue-700"
+                        : "text-gray-700 hover:bg-gray-100"
+                      }`}
+                  >
+                    <Users2 className="w-4 h-4" />
+                    <span className="hidden sm:inline">Team</span>
+                  </Link>
+                )}
 
                 {/* User Menu */}
                 <div className="flex items-center gap-3 ml-2 pl-3 border-l border-gray-200">
