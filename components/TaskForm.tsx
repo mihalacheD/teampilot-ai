@@ -8,7 +8,7 @@ import {
   createTaskClientSchema,
 } from "@/lib/validators/task";
 import { useSession } from "next-auth/react";
-import { Plus, Loader2, UserCircle } from "lucide-react";
+import { Plus, Loader2, UserCircle, X, ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
 
 type TaskFormProps = {
@@ -17,6 +17,7 @@ type TaskFormProps = {
 
 const TaskForm = ({ onCreate }: TaskFormProps) => {
   const { data: session, status } = useSession();
+  const [isOpen, setIsOpen] = useState(false);
 
   const [employees, setEmployees] = useState<
     { id: string; name: string; email: string }[]
@@ -50,9 +51,7 @@ const TaskForm = ({ onCreate }: TaskFormProps) => {
   if (status === "loading") {
     return (
       <div className="bg-white rounded-2xl border border-gray-100 p-6 animate-pulse">
-        <div className="h-6 bg-gray-200 rounded w-32 mb-4"></div>
-        <div className="h-10 bg-gray-200 rounded mb-3"></div>
-        <div className="h-24 bg-gray-200 rounded"></div>
+        <div className="h-12 bg-gray-200 rounded-xl"></div>
       </div>
     );
   }
@@ -76,22 +75,62 @@ const TaskForm = ({ onCreate }: TaskFormProps) => {
 
       reset();
       setSelectedUserId("");
+      setIsOpen(false); // Close form after successful creation
     } catch (error) {
       console.error("Failed to create task:", error);
     }
   };
 
+  const handleCancel = () => {
+    reset();
+    setSelectedUserId("");
+    setIsOpen(false);
+  };
+
+  // Collapsed Button State
+  if (!isOpen) {
+    return (
+      <button
+        onClick={() => setIsOpen(true)}
+        className="w-full bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-2xl p-6 transition-all shadow-sm hover:shadow-md group"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center group-hover:bg-white/30 transition-colors">
+              <Plus className="w-5 h-5" />
+            </div>
+            <div className="text-left">
+              <h3 className="font-semibold text-lg">Create New Task</h3>
+              <p className="text-blue-100 text-sm">Assign a task to your team members</p>
+            </div>
+          </div>
+          <ChevronDown className="w-5 h-5 text-blue-100 group-hover:translate-y-0.5 transition-transform" />
+        </div>
+      </button>
+    );
+  }
+
+  // Expanded Form State
   return (
     <form
       onSubmit={handleSubmit(handleFormSubmit)}
-      className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-4 hover:shadow-md transition-shadow"
+      className="bg-white rounded-2xl border border-gray-200 shadow-lg p-6 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300"
     >
       {/* Form Header */}
-      <div className="flex items-center gap-2 mb-6">
-        <div className="w-8 h-8 bg-linear-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-          <Plus className="w-5 h-5 text-white" />
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-linear-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+            <Plus className="w-5 h-5 text-white" />
+          </div>
+          <h2 className="text-xl font-bold text-gray-900">Create New Task</h2>
         </div>
-        <h2 className="text-xl font-bold text-gray-900">Create New Task</h2>
+        <button
+          type="button"
+          onClick={handleCancel}
+          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
       {/* Title Input */}
@@ -104,10 +143,11 @@ const TaskForm = ({ onCreate }: TaskFormProps) => {
           id="title"
           {...register("title")}
           placeholder="Enter task title..."
-          className={`w-full px-4 py-3 border rounded-xl outline-none transition-all ${errors.title
-            ? "border-red-300 focus:ring-2 focus:ring-red-200 focus:border-red-400"
-            : "border-gray-200 focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
-            }`}
+          className={`w-full px-4 py-3 border rounded-xl outline-none transition-all ${
+            errors.title
+              ? "border-red-300 focus:ring-2 focus:ring-red-200 focus:border-red-400"
+              : "border-gray-200 focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+          }`}
         />
 
         <div className="flex justify-between items-center mt-1.5">
@@ -120,8 +160,9 @@ const TaskForm = ({ onCreate }: TaskFormProps) => {
             <div></div>
           )}
           <p
-            className={`text-xs font-medium ${titleValue.length > 50 ? "text-red-500" : "text-gray-400"
-              }`}
+            className={`text-xs font-medium ${
+              titleValue.length > 50 ? "text-red-500" : "text-gray-400"
+            }`}
           >
             {titleValue.length}/50
           </p>
@@ -145,8 +186,9 @@ const TaskForm = ({ onCreate }: TaskFormProps) => {
             Provide context to help team members understand the task
           </p>
           <p
-            className={`text-xs font-medium ${descriptionValue.length > 500 ? "text-red-500" : "text-gray-400"
-              }`}
+            className={`text-xs font-medium ${
+              descriptionValue.length > 500 ? "text-red-500" : "text-gray-400"
+            }`}
           >
             {descriptionValue.length}/500
           </p>
@@ -164,31 +206,29 @@ const TaskForm = ({ onCreate }: TaskFormProps) => {
           id="dueDate"
           {...register("dueDate")}
           className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none
-      focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-all"
+            focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-all bg-white"
         />
       </div>
 
-
-      {/* User Assignment Dropdown - STILIZAT */}
+      {/* User Assignment Dropdown */}
       <div>
         <label htmlFor="assignee" className="block text-sm font-medium text-gray-700 mb-2">
           Assign to <span className="text-red-500">*</span>
         </label>
         <div className="relative">
-          {/* Icon stânga */}
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <UserCircle className="w-5 h-5 text-gray-400" />
           </div>
 
-          {/* Dropdown */}
           <select
             id="assignee"
             value={selectedUserId}
             onChange={(e) => setSelectedUserId(e.target.value)}
-            className={`w-full pl-10 pr-10 py-3 border rounded-xl outline-none transition-all appearance-none bg-white cursor-pointer ${!selectedUserId
-              ? "border-red-300 focus:ring-2 focus:ring-red-200 focus:border-red-400 text-gray-400"
-              : "border-gray-200 focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
-              }`}
+            className={`w-full pl-10 pr-10 py-3 border rounded-xl outline-none transition-all appearance-none bg-white cursor-pointer ${
+              !selectedUserId
+                ? "border-red-300 focus:ring-2 focus:ring-red-200 focus:border-red-400 text-gray-400"
+                : "border-gray-200 focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+            }`}
             required
           >
             <option value="" disabled>
@@ -196,12 +236,11 @@ const TaskForm = ({ onCreate }: TaskFormProps) => {
             </option>
             {employees.map((u) => (
               <option key={u.id} value={u.id} className="text-gray-900">
-                {u.name} • {u.email}
+                {u.name}
               </option>
             ))}
           </select>
 
-          {/* Chevron icon dreapta */}
           <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
             <svg
               className="h-5 w-5 text-gray-400"
@@ -218,27 +257,35 @@ const TaskForm = ({ onCreate }: TaskFormProps) => {
             </svg>
           </div>
         </div>
-
       </div>
 
-      {/* Submit Button */}
-      <button
-        type="submit"
-        disabled={isSubmitting || !selectedUserId}
-        className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow-md disabled:cursor-not-allowed"
-      >
-        {isSubmitting ? (
-          <>
-            <Loader2 className="w-4 h-4 animate-spin" />
-            Creating Task...
-          </>
-        ) : (
-          <>
-            <Plus className="w-4 h-4" />
-            Create Task
-          </>
-        )}
-      </button>
+      {/* Action Buttons */}
+      <div className="flex gap-3 pt-2">
+        <button
+          type="button"
+          onClick={handleCancel}
+          className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-all"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={isSubmitting || !selectedUserId}
+          className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow-md disabled:cursor-not-allowed"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Creating...
+            </>
+          ) : (
+            <>
+              <Plus className="w-4 h-4" />
+              Create Task
+            </>
+          )}
+        </button>
+      </div>
     </form>
   );
 };

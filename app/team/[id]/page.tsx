@@ -95,11 +95,19 @@ export default function TeamMemberPage({ params }: Props) {
         </div>
         <button
           onClick={() => router.push("/team")}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-        >
+          className="
+                  inline-flex items-center gap-2
+                  px-3 py-2 md:px-4
+                  text-sm font-medium
+                  text-gray-700
+                  bg-white border border-gray-200
+                  rounded-lg
+                  hover:bg-gray-50
+                  transition">
           <ArrowLeft className="w-4 h-4" />
-          Back to Team
+          <span className="hidden md:inline">Back to Team</span>
         </button>
+
       </div>
 
       {/* Quick Stats */}

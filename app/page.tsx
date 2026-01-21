@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CheckCircle2, BarChart3, Users, Sparkles, ArrowRight, Zap } from "lucide-react";
-import {getHomeStats} from "@/lib/home";
+import { getHomeStats } from "@/lib/home";
 import LandingPage from "@/components/LandingPage";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -20,12 +20,12 @@ export default async function Home() {
       <div className="max-w-6xl mx-auto px-6 py-16">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 md:p-12">
           {/* Header */}
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-12 h-12 bg-linear-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-white" />
+          <div className="flex items-center gap-3 md:gap-6 mb-8">
+            <div className="w-9 h-9 md:w-10 md:h-10 bg-linear-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+              <Sparkles className="w-5 md:w-6 h-5 md:h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
+              <h1 className="text-2xl md:text-4xl font-bold text-gray-900">
                 Welcome back, {session.user.name?.split(" ")[0] || "there"}! 👋
               </h1>
               <p className="text-gray-500 mt-1">
@@ -35,6 +35,7 @@ export default async function Home() {
               </p>
             </div>
           </div>
+
 
           {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
