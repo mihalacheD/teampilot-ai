@@ -16,7 +16,7 @@ export async function GET() {
 
   const tasks = await prisma.task.findMany({
     where: isManager ? {} : { userId: session.user.id },
-    orderBy: { createdAt: "desc" },
+    orderBy:[ { createdAt: "desc" },{ priority: "desc" }],
     include: {
       user: {
         select: {
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    const { title, description, userId, dueDate } = validation.data;
+    const { title, description, priority, userId, dueDate } = validation.data;
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -67,6 +67,7 @@ export async function POST(req: Request) {
       data: {
         title,
         description,
+        priority: priority || "MEDIUM",
         userId,
         dueDate: dueDate ? new Date(dueDate) : null,
       },

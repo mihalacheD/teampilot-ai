@@ -65,6 +65,26 @@ export default async function Home() {
               <p className="text-xs text-gray-600 mt-1">All time</p>
             </div>
 
+            {session.user.role === "EMPLOYEE" && (
+              <div className="bg-linear-to-br from-red-50 to-red-100 rounded-xl p-6 border border-red-200">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-red-600 text-sm font-medium">
+                    Urgent Tasks
+                  </span>
+                  <Zap className="w-5 h-5 text-red-600" />
+                </div>
+
+                <p className="text-3xl font-bold text-gray-900">
+                  {stats.urgentTasks}
+                </p>
+
+                <p className="text-xs text-gray-600 mt-1">
+                  High & urgent priority
+                </p>
+              </div>
+            )}
+
+
             {session.user.role === "MANAGER" && (
               <div className="bg-linear-to-br from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200">
                 <div className="flex items-center justify-between mb-2">

@@ -9,7 +9,8 @@ import {
   BarChart3,
   TrendingUp,
   Calendar,
-  ArrowLeft
+  ArrowLeft,
+  Flag
 } from "lucide-react";
 import { Task } from "@prisma/client";
 import StatCard from "@/components/StatCard";
@@ -18,6 +19,7 @@ import MetricBar from "@/components/MetricBar";
 import { TaskStatus, statusStyles } from "@/lib/constants/task-status";
 import { calculateTaskStats, statusLabels } from "@/lib/task-metrics";
 import { formatDate } from "@/lib/date";
+import { priorityLabels, priorityStyles } from "@/lib/constants/priority";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -217,6 +219,13 @@ export default function TeamMemberPage({ params }: Props) {
                         <p className="text-sm text-gray-600 mb-3">{task.description}</p>
                       )}
                       <div className="flex items-center gap-4 text-sm">
+                        {/* Priority Badge */}
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm ${priorityStyles[task.priority]}`}>
+                          <Flag className="w-4 h-4" />
+                          {priorityLabels[task.priority]}
+                        </span>
+                         {/* Status Badge */}
                         <span className={`text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md ${statusStyles[task.status as TaskStatus]}`}>
                           {statusLabels[task.status as TaskStatus]}
                         </span>

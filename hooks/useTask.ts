@@ -6,6 +6,7 @@ type Task = {
   id: string;
   title: string;
   description: string;
+  priority: "HIGH" | "MEDIUM" | "LOW";
   status: TaskStatus;
   userId: string;
   dueDate?: string | null;

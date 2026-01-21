@@ -8,8 +8,9 @@ import {
   createTaskClientSchema,
 } from "@/lib/validators/task";
 import { useSession } from "next-auth/react";
-import { Plus, Loader2, UserCircle, X, ChevronDown } from "lucide-react";
+import { Plus, Loader2, UserCircle, X, ChevronDown, Flag } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Priority, priorityLabels, priorityStyles } from "@/lib/constants/priority";
 
 type TaskFormProps = {
   onCreate: (data: CreateTaskApiInput) => Promise<void>;
@@ -43,6 +44,9 @@ const TaskForm = ({ onCreate }: TaskFormProps) => {
     formState: { errors, isSubmitting },
   } = useForm<CreateTaskClientInput>({
     resolver: zodResolver(createTaskClientSchema),
+    defaultValues: {
+      priority: "MEDIUM",
+    },
   });
 
   const descriptionValue = useWatch({ control, name: "description" }) || "";
@@ -69,13 +73,14 @@ const TaskForm = ({ onCreate }: TaskFormProps) => {
       await onCreate({
         title: data.title,
         description: data.description,
+        priority: data.priority,
         userId: selectedUserId,
         dueDate: data.dueDate ? data.dueDate : null,
       });
 
       reset();
       setSelectedUserId("");
-      setIsOpen(false); // Close form after successful creation
+      setIsOpen(false);
     } catch (error) {
       console.error("Failed to create task:", error);
     }
@@ -143,11 +148,10 @@ const TaskForm = ({ onCreate }: TaskFormProps) => {
           id="title"
           {...register("title")}
           placeholder="Enter task title..."
-          className={`w-full px-4 py-3 border rounded-xl outline-none transition-all ${
-            errors.title
-              ? "border-red-300 focus:ring-2 focus:ring-red-200 focus:border-red-400"
-              : "border-gray-200 focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
-          }`}
+          className={`w-full px-4 py-3 border rounded-xl outline-none transition-all ${errors.title
+            ? "border-red-300 focus:ring-2 focus:ring-red-200 focus:border-red-400"
+            : "border-gray-200 focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+            }`}
         />
 
         <div className="flex justify-between items-center mt-1.5">
@@ -160,9 +164,8 @@ const TaskForm = ({ onCreate }: TaskFormProps) => {
             <div></div>
           )}
           <p
-            className={`text-xs font-medium ${
-              titleValue.length > 50 ? "text-red-500" : "text-gray-400"
-            }`}
+            className={`text-xs font-medium ${titleValue.length > 50 ? "text-red-500" : "text-gray-400"
+              }`}
           >
             {titleValue.length}/50
           </p>
@@ -186,12 +189,49 @@ const TaskForm = ({ onCreate }: TaskFormProps) => {
             Provide context to help team members understand the task
           </p>
           <p
-            className={`text-xs font-medium ${
-              descriptionValue.length > 500 ? "text-red-500" : "text-gray-400"
-            }`}
+            className={`text-xs font-medium ${descriptionValue.length > 500 ? "text-red-500" : "text-gray-400"
+              }`}
           >
             {descriptionValue.length}/500
           </p>
+        </div>
+      </div>
+
+      {/* Priority Selector */}
+      <div>
+        <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-2">
+          Priority <span className="text-gray-400 text-xs">(optional)</span>
+        </label>
+        <div className="grid grid-cols-4 gap-2">
+          {(["LOW", "MEDIUM", "HIGH", "URGENT"] as Priority[]).map((priority) => (
+            <label
+              key={priority}
+              className="relative cursor-pointer"
+            >
+              <input
+                type="radio"
+                value={priority}
+                {...register("priority")}
+                className="peer sr-only"
+              />
+              <div className={`
+                flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all
+                peer-checked:ring-2 peer-checked:ring-offset-2
+                ${priority === "LOW" ? "border-gray-200 peer-checked:border-gray-400 peer-checked:ring-gray-300" : ""}
+                ${priority === "MEDIUM" ? "border-blue-200 peer-checked:border-blue-500 peer-checked:ring-blue-300" : ""}
+                ${priority === "HIGH" ? "border-orange-200 peer-checked:border-orange-500 peer-checked:ring-orange-300" : ""}
+                ${priority === "URGENT" ? "border-red-200 peer-checked:border-red-500 peer-checked:ring-red-300" : ""}
+                peer-checked:${priorityStyles[priority]}
+              `}>
+                <Flag className={`w-4 h-4 mb-1 ${priority === "LOW" ? "text-gray-500" :
+                  priority === "MEDIUM" ? "text-blue-500" :
+                    priority === "HIGH" ? "text-orange-500" :
+                      "text-red-500"
+                  }`} />
+                <span className="text-xs font-medium">{priorityLabels[priority]}</span>
+              </div>
+            </label>
+          ))}
         </div>
       </div>
 
@@ -224,11 +264,10 @@ const TaskForm = ({ onCreate }: TaskFormProps) => {
             id="assignee"
             value={selectedUserId}
             onChange={(e) => setSelectedUserId(e.target.value)}
-            className={`w-full pl-10 pr-10 py-3 border rounded-xl outline-none transition-all appearance-none bg-white cursor-pointer ${
-              !selectedUserId
-                ? "border-red-300 focus:ring-2 focus:ring-red-200 focus:border-red-400 text-gray-400"
-                : "border-gray-200 focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
-            }`}
+            className={`w-full pl-10 pr-10 py-3 border rounded-xl outline-none transition-all appearance-none bg-white cursor-pointer ${!selectedUserId
+              ? "border-red-300 focus:ring-2 focus:ring-red-200 focus:border-red-400 text-gray-400"
+              : "border-gray-200 focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+              }`}
             required
           >
             <option value="" disabled>

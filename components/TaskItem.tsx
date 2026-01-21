@@ -1,17 +1,19 @@
 "use client";
 
 import { TaskStatus, statusStyles } from "@/lib/constants/task-status";
-import { Trash2, Lock, Edit2, Save, X, AlertTriangle, Calendar } from "lucide-react";
+import { Trash2, Lock, Edit2, Save, X, AlertTriangle, Calendar, Flag } from "lucide-react";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { canDeleteTask, canEditTask, canChangeTaskStatus } from "../lib/validators/permissions";
 import { formatDate } from "@/lib/date";
+import { Priority, priorityLabels, priorityStyles } from "@/lib/constants/priority";
 
 type TaskItemProps = {
   task: {
     id: string;
     title: string;
     description: string;
+    priority: Priority;
     status: TaskStatus;
     userId: string;
     dueDate?: string | null;
@@ -193,6 +195,14 @@ export function TaskItem({ task, isLoading, onStatusChange, onEdit, onDelete }: 
 
         {/* Actions Area */}
         <div className="flex md:flex-col items-end gap-4 shrink-0 order-1 md:order-2">
+
+          {/* Priority Badge */}
+          <span
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm ${priorityStyles[task.priority]}`}>
+            <Flag className="w-4 h-4" />
+            {priorityLabels[task.priority]}
+          </span>
+
           {/* Status Buttons */}
           <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
             {(["TODO", "IN_PROGRESS", "DONE"] as TaskStatus[]).map((status) => (
@@ -201,8 +211,8 @@ export function TaskItem({ task, isLoading, onStatusChange, onEdit, onDelete }: 
                 disabled={isLoading || !canChangeStatus}
                 onClick={() => canChangeStatus && onStatusChange(task.id, status)}
                 className={`px-2 md:px-3 py-1 md:py-1.5 text-[9px] md:text-[10px] font-bold rounded-md transition-all ${task.status === status
-                    ? statusStyles[status]
-                    : "text-gray-500 hover:bg-white hover:text-gray-700"
+                  ? statusStyles[status]
+                  : "text-gray-500 hover:bg-white hover:text-gray-700"
                   } ${isLoading || !canChangeStatus ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 <span className="hidden sm:inline">{status.replace("_", " ")}</span>
@@ -252,6 +262,6 @@ export function TaskItem({ task, isLoading, onStatusChange, onEdit, onDelete }: 
         </div>
 
       </div>
-    </li>
+    </li >
   );
 }

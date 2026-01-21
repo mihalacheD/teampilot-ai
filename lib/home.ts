@@ -1,6 +1,9 @@
 import { prisma } from "@/lib/prisma";
 
-export async function getHomeStats(userId: string, role: "MANAGER" | "EMPLOYEE") {
+export async function getHomeStats(
+  userId: string,
+  role: "MANAGER" | "EMPLOYEE",
+) {
   if (role === "MANAGER") {
     const users = await prisma.user.findMany({
       where: { role: "EMPLOYEE" },
@@ -11,10 +14,10 @@ export async function getHomeStats(userId: string, role: "MANAGER" | "EMPLOYEE")
     let activeTasks = 0;
     let completedTasks = 0;
 
-    users.forEach(user => {
+    users.forEach((user) => {
       totalTasks += user.tasks.length;
-      completedTasks += user.tasks.filter(t => t.status === "DONE").length;
-      activeTasks += user.tasks.filter(t => t.status !== "DONE").length;
+      completedTasks += user.tasks.filter((t) => t.status === "DONE").length;
+      activeTasks += user.tasks.filter((t) => t.status !== "DONE").length;
     });
 
     return {
@@ -28,13 +31,20 @@ export async function getHomeStats(userId: string, role: "MANAGER" | "EMPLOYEE")
       where: { userId },
     });
 
-    const completed = tasks.filter(t => t.status === "DONE").length;
-    const active = tasks.filter(t => t.status !== "DONE").length;
+    const completed = tasks.filter((t) => t.status === "DONE").length;
+    const active = tasks.filter((t) => t.status !== "DONE").length;
+
+    const urgent = tasks.filter(
+      (t) =>
+        t.status !== "DONE" &&
+        (t.priority === "HIGH" || t.priority === "URGENT"),
+    ).length;
 
     return {
       activeTasks: active,
       completedTasks: completed,
       totalTasks: tasks.length,
+      urgentTasks: urgent,
     };
   }
 }
