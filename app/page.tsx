@@ -1,9 +1,12 @@
+
+
 import Link from "next/link";
 import { CheckCircle2, BarChart3, Users, Sparkles, ArrowRight, Zap } from "lucide-react";
 import { getHomeStats } from "@/lib/home";
 import LandingPage from "@/components/LandingPage";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import StatCard from "@/components/StatCard";
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
@@ -39,61 +42,30 @@ export default async function Home() {
 
           {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div className="bg-linear-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-blue-600 text-sm font-medium">Active Tasks</span>
-                <CheckCircle2 className="w-5 h-5 text-blue-600" />
-              </div>
-              <p className="text-3xl font-bold text-gray-900">
-                {session.user.role === "MANAGER" ? stats.activeTasks : stats.activeTasks}
-              </p>
-              <p className="text-xs text-gray-600 mt-1">
-                {session.user.role === "MANAGER"
-                  ? "All active tasks"
-                  : "Assigned to you"}
-              </p>
-            </div>
+            <StatCard
+              title="Active Tasks"
+              value={stats.activeTasks}
+              subtitle={session.user.role === "MANAGER" ? "All active tasks" : "Assigned to you"}
+              icon={<CheckCircle2 className="w-5 h-5" />}
+              color="blue"
+            />
 
-            <div className="bg-linear-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-green-600 text-sm font-medium">Completed</span>
-                <Zap className="w-5 h-5 text-green-600" />
-              </div>
-              <p className="text-3xl font-bold text-gray-900">
-                {stats.completedTasks}
-              </p>
-              <p className="text-xs text-gray-600 mt-1">All time</p>
-            </div>
-
-            {session.user.role === "EMPLOYEE" && (
-              <div className="bg-linear-to-br from-red-50 to-red-100 rounded-xl p-6 border border-red-200">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-red-600 text-sm font-medium">
-                    Urgent Tasks
-                  </span>
-                  <Zap className="w-5 h-5 text-red-600" />
-                </div>
-
-                <p className="text-3xl font-bold text-gray-900">
-                  {stats.urgentTasks}
-                </p>
-
-                <p className="text-xs text-gray-600 mt-1">
-                  High & urgent priority
-                </p>
-              </div>
-            )}
-
+            <StatCard
+              title="Completed"
+              value={stats.completedTasks}
+              subtitle="All time"
+              icon={<Zap className="w-5 h-5" />}
+              color="green"
+            />
 
             {session.user.role === "MANAGER" && (
-              <div className="bg-linear-to-br from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-purple-600 text-sm font-medium">Team Members</span>
-                  <Users className="w-5 h-5 text-purple-600" />
-                </div>
-                <p className="text-3xl font-bold text-gray-900">{stats.teamMembers}</p>
-                <p className="text-xs text-gray-600 mt-1">All active</p>
-              </div>
+              <StatCard
+                title="Team Members"
+                value={stats.teamMembers ?? 0}
+                subtitle="All active"
+                icon={<Users className="w-5 h-5" />}
+                color="purple"
+              />
             )}
           </div>
 

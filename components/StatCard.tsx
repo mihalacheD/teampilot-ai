@@ -2,7 +2,7 @@
 interface StatCardProps {
   icon: React.ReactNode;
   title: string;
-  value: string;
+  value: string | number;
   subtitle: string;
   color: "blue" | "green" | "yellow" | "purple" | "red";
 }
