@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { Task } from "@prisma/client";
 import StatCard from "@/components/StatCard";
-import DashboardCard from "@/components/DashboardCard";
+import DashboardCard from "@/components/dashboard/DashboardCard";
 import MetricBar from "@/components/MetricBar";
 import { TaskStatus, statusStyles } from "@/lib/constants/task-status";
 import { calculateTaskStats, statusLabels } from "@/lib/task-metrics";
@@ -225,7 +225,7 @@ export default function TeamMemberPage({ params }: Props) {
                           <Flag className="w-4 h-4" />
                           {priorityLabels[task.priority]}
                         </span>
-                         {/* Status Badge */}
+                        {/* Status Badge */}
                         <span className={`text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md ${statusStyles[task.status as TaskStatus]}`}>
                           {statusLabels[task.status as TaskStatus]}
                         </span>
