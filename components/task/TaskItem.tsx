@@ -4,15 +4,15 @@ import { TaskStatus, statusStyles } from "@/lib/constants/task-status";
 import { Trash2, Lock, Edit2, Save, X, AlertTriangle, Calendar, Flag } from "lucide-react";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
-import { canDeleteTask, canEditTask, canChangeTaskStatus } from "../lib/validators/permissions";
 import { formatDate } from "@/lib/date";
 import { Priority, priorityLabels, priorityStyles } from "@/lib/constants/priority";
+import { canChangeTaskStatus, canDeleteTask, canEditTask } from "@/lib/validators/permissions";
 
 type TaskItemProps = {
   task: {
     id: string;
     title: string;
-    description: string;
+    description: string | null;
     priority: Priority;
     status: TaskStatus;
     userId: string;

@@ -9,8 +9,9 @@ import {
 } from "@/lib/validators/task";
 import { useSession } from "next-auth/react";
 import { Plus, Loader2, UserCircle, X, ChevronDown, Flag } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Priority, priorityLabels, priorityStyles } from "@/lib/constants/priority";
+import useEmployee from "@/hooks/useEmployee";
 
 type TaskFormProps = {
   onCreate: (data: CreateTaskApiInput) => Promise<void>;
@@ -18,23 +19,8 @@ type TaskFormProps = {
 
 const TaskForm = ({ onCreate }: TaskFormProps) => {
   const { data: session, status } = useSession();
+  const { employees } = useEmployee();
   const [isOpen, setIsOpen] = useState(false);
-
-  const [employees, setEmployees] = useState<
-    { id: string; name: string; email: string }[]
-  >([]);
-  const [selectedUserId, setSelectedUserId] = useState("");
-
-  useEffect(() => {
-    async function fetchEmployees() {
-      const res = await fetch("/api/users");
-      if (res.ok) {
-        setEmployees(await res.json());
-      }
-    }
-
-    fetchEmployees();
-  }, []);
 
   const {
     register,
@@ -52,43 +38,21 @@ const TaskForm = ({ onCreate }: TaskFormProps) => {
   const descriptionValue = useWatch({ control, name: "description" }) || "";
   const titleValue = useWatch({ control, name: "title" }) || "";
 
-  if (status === "loading") {
-    return (
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 animate-pulse">
-        <div className="h-12 bg-gray-200 rounded-xl"></div>
-      </div>
-    );
-  }
-
-  if (!session || session.user.role !== "MANAGER") {
-    return null;
-  }
+  if (status === "loading") return null;
+  if (!session || session.user.role !== "MANAGER") return null;
 
   const handleFormSubmit = async (data: CreateTaskClientInput) => {
-    if (!selectedUserId) {
-      return;
-    }
+    await onCreate({
+      ...data,
+      dueDate: data.dueDate || null,
+    });
 
-    try {
-      await onCreate({
-        title: data.title,
-        description: data.description,
-        priority: data.priority,
-        userId: selectedUserId,
-        dueDate: data.dueDate ? data.dueDate : null,
-      });
-
-      reset();
-      setSelectedUserId("");
-      setIsOpen(false);
-    } catch (error) {
-      console.error("Failed to create task:", error);
-    }
+    reset();
+    setIsOpen(false);
   };
 
   const handleCancel = () => {
     reset();
-    setSelectedUserId("");
     setIsOpen(false);
   };
 
@@ -115,7 +79,7 @@ const TaskForm = ({ onCreate }: TaskFormProps) => {
     );
   }
 
-  // Expanded Form State
+  // EXPANDED FORM
   return (
     <form
       onSubmit={handleSubmit(handleFormSubmit)}
@@ -251,78 +215,39 @@ const TaskForm = ({ onCreate }: TaskFormProps) => {
       </div>
 
       {/* User Assignment Dropdown */}
-      <div>
-        <label htmlFor="assignee" className="block text-sm font-medium text-gray-700 mb-2">
-          Assign to <span className="text-red-500">*</span>
-        </label>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <UserCircle className="w-5 h-5 text-gray-400" />
-          </div>
-
-          <select
-            id="assignee"
-            value={selectedUserId}
-            onChange={(e) => setSelectedUserId(e.target.value)}
-            className={`w-full pl-10 pr-10 py-3 border rounded-xl outline-none transition-all appearance-none bg-white cursor-pointer ${!selectedUserId
-              ? "border-red-300 focus:ring-2 focus:ring-red-200 focus:border-red-400 text-gray-400"
-              : "border-gray-200 focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
-              }`}
-            required
-          >
-            <option value="" disabled>
-              Select an employee to assign this task
+      <div className="relative">
+        <UserCircle className="absolute left-3 top-3.5 text-gray-400" />
+        <select
+          {...register("userId")}
+          className="w-full pl-10 pr-4 py-3 border rounded-xl bg-white"
+        >
+          <option value="">Select employee</option>
+          {employees.map((u) => (
+            <option key={u.id} value={u.id}>
+              {u.name}
             </option>
-            {employees.map((u) => (
-              <option key={u.id} value={u.id} className="text-gray-900">
-                {u.name}
-              </option>
-            ))}
-          </select>
-
-          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-            <svg
-              className="h-5 w-5 text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </div>
-        </div>
+          ))}
+        </select>
+        {errors.userId && (
+          <p className="text-red-500 text-sm mt-1">{errors.userId.message}</p>
+        )}
       </div>
 
-      {/* Action Buttons */}
+      {/* Actions */}
       <div className="flex gap-3 pt-2">
         <button
           type="button"
           onClick={handleCancel}
-          className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-all"
+          className="flex-1 px-6 py-3 bg-gray-100 rounded-xl"
         >
           Cancel
         </button>
         <button
           type="submit"
-          disabled={isSubmitting || !selectedUserId}
-          className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow-md disabled:cursor-not-allowed"
+          disabled={isSubmitting}
+          className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-linear-to-r from-blue-600 to-indigo-600 text-white rounded-xl"
         >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Creating...
-            </>
-          ) : (
-            <>
-              <Plus className="w-4 h-4" />
-              Create Task
-            </>
-          )}
+          {isSubmitting ? <Loader2 className="animate-spin w-4 h-4" /> : "Create Task"}
         </button>
       </div>
     </form>

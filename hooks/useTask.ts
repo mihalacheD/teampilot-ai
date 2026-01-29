@@ -1,115 +1,90 @@
+import { useEffect, useState } from "react";
+import {
+  Task,
+  getTasks,
+  createTaskApi,
+  updateTaskApi,
+  deleteTaskApi,
+} from "@/lib/api/tasks";
 import { TaskStatus } from "@/lib/constants/task-status";
 import { CreateTaskApiInput } from "@/lib/validators/task";
-import { useEffect, useState } from "react";
-
-type Task = {
-  id: string;
-  title: string;
-  description: string;
-  priority: "HIGH" | "MEDIUM" | "LOW";
-  status: TaskStatus;
-  userId: string;
-  dueDate?: string | null;
-};
+import { getErrorMessage } from "@/lib/errorHandler";
 
 export function useTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null);
-
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchTasks() {
+    let mounted = true;
+
+    (async () => {
       try {
         setIsLoading(true);
-        const res = await fetch("/api/tasks");
-        if (!res.ok) throw new Error("Failed to fetch tasks");
-        const data = await res.json();
-        setTasks(data);
+        const data = await getTasks();
+        if (mounted) setTasks(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
+        if (mounted) setError(getErrorMessage(err));
       } finally {
-        setIsLoading(false);
+        if (mounted) setIsLoading(false);
       }
-    }
+    })();
 
-    fetchTasks();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   async function createTask(data: CreateTaskApiInput) {
-    const res = await fetch("/api/tasks", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => ({}));
-      throw new Error(errorData.error || "Failed to create task");
-    }
-
-    const newTask = await res.json();
+    const newTask = await createTaskApi(data);
     setTasks((prev) => [newTask, ...prev]);
   }
 
   async function updateTaskStatus(taskId: string, status: TaskStatus) {
-    const previousTasks = tasks;
+    const prev = tasks;
 
-    setTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, status } : t))
+    setTasks((t) =>
+      t.map((task) =>
+        task.id === taskId ? { ...task, status } : task,
+      ),
     );
-
     setUpdatingTaskId(taskId);
 
     try {
-      const res = await fetch(`/api/tasks/${taskId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      });
-
-      if (!res.ok) throw new Error("Update failed");
+      await updateTaskApi(taskId, { status });
     } catch {
-      setTasks(previousTasks);
-      alert("Failed to update task");
+      setTasks(prev);
     } finally {
       setUpdatingTaskId(null);
     }
   }
 
   async function updateTask(taskId: string, updates: Partial<Task>) {
-    const previousTasks = tasks;
+    const prev = tasks;
 
-    setTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, ...updates } : t))
+    setTasks((t) =>
+      t.map((task) =>
+        task.id === taskId ? { ...task, ...updates } : task,
+      ),
     );
 
     try {
-      const res = await fetch(`/api/tasks/${taskId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updates),
-      });
-      if (!res.ok) throw new Error("Update failed");
+      await updateTaskApi(taskId, updates);
     } catch {
-      setTasks(previousTasks);
-      alert("Failed to update task");
+      setTasks(prev);
     }
   }
 
   async function deleteTask(taskId: string) {
-    const previousTasks = tasks;
-    setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    const prev = tasks;
+
+    setTasks((t) => t.filter((task) => task.id !== taskId));
 
     try {
-      const res = await fetch(`/api/tasks/${taskId}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) throw new Error("Delete failed");
+      await deleteTaskApi(taskId);
     } catch {
-      setTasks(previousTasks);
-      alert("Failed to delete task");
+      setTasks(prev);
     }
   }
 

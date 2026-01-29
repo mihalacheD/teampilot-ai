@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import DashboardCard from "@/components/dashboard/DashboardCard";
 import StatCard from "@/components/StatCard";
-import TaskPreview from "@/components/TaskPreview";
+import TaskPreview from "@/components/task/TaskPreview";
 import { TaskStatus } from "@/lib/constants/task-status";
 import DashboardBanner from "./DashboardBanner";
 
