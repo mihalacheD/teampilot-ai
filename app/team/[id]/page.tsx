@@ -11,9 +11,9 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { Task } from "@prisma/client";
-import StatCard from "@/components/team/StatCard";
+import StatCard from "@/components/ui/StatCard";
 import DashboardCard from "@/components/dashboard/DashboardCard";
-import MetricBar from "@/components/team/MetricBar";
+import MetricBar from "@/components/ui/MetricBar";
 import { calculateTaskStats } from "@/lib/task-metrics";
 import { MemberTaskRow } from "@/components/team/TeamTaskRow";
 import { EmptyTasksState, LoadingSkeleton } from "@/components/team/TeamComponents";

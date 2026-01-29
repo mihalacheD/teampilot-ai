@@ -11,8 +11,8 @@ import {
   UserCircle,
 } from "lucide-react";
 import DashboardCard from "@/components/dashboard/DashboardCard";
-import MetricBar from "@/components/team/MetricBar";
-import StatCard from "@/components/team/StatCard";
+import MetricBar from "@/components/ui/MetricBar";
+import StatCard from "@/components/ui/StatCard";
 import { calculateMetricsPercentages } from "@/lib/task-metrics";
 import DashboardBanner from "./DashboardBanner";
 import { ManagerDashboardData } from "@/lib/manager";

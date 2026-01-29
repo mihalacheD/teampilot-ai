@@ -8,7 +8,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import DashboardCard from "@/components/dashboard/DashboardCard";
-import StatCard from "@/components/team/StatCard";
+import StatCard from "@/components/ui/StatCard";
 import TaskPreview from "@/components/task/TaskPreview";
 import { TaskStatus } from "@/lib/constants/task-status";
 import DashboardBanner from "./DashboardBanner";
