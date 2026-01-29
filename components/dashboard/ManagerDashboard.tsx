@@ -11,12 +11,12 @@ import {
   UserCircle,
 } from "lucide-react";
 import DashboardCard from "@/components/dashboard/DashboardCard";
-import TeamTaskPreview from "@/components/TeamTaskPreview";
-import MetricBar from "@/components/MetricBar";
-import StatCard from "@/components/StatCard";
+import MetricBar from "@/components/team/MetricBar";
+import StatCard from "@/components/team/StatCard";
 import { calculateMetricsPercentages } from "@/lib/task-metrics";
 import DashboardBanner from "./DashboardBanner";
 import { ManagerDashboardData } from "@/lib/manager";
+import TeamTaskPreview from "./TeamTaskPreview";
 
 type ManagerDashboardProps = {
   data: ManagerDashboardData;

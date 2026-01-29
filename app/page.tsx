@@ -6,7 +6,7 @@ import { getHomeStats } from "@/lib/home";
 import LandingPage from "@/components/LandingPage";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import StatCard from "@/components/StatCard";
+import StatCard from "@/components/team/StatCard";
 
 export default async function Home() {
   const session = await getServerSession(authOptions);

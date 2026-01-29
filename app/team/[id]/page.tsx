@@ -8,18 +8,15 @@ import {
   Zap,
   BarChart3,
   TrendingUp,
-  Calendar,
   ArrowLeft,
-  Flag
 } from "lucide-react";
 import { Task } from "@prisma/client";
-import StatCard from "@/components/StatCard";
+import StatCard from "@/components/team/StatCard";
 import DashboardCard from "@/components/dashboard/DashboardCard";
-import MetricBar from "@/components/MetricBar";
-import { TaskStatus, statusStyles } from "@/lib/constants/task-status";
-import { calculateTaskStats, statusLabels } from "@/lib/task-metrics";
-import { formatDate } from "@/lib/date";
-import { priorityLabels, priorityStyles } from "@/lib/constants/priority";
+import MetricBar from "@/components/team/MetricBar";
+import { calculateTaskStats } from "@/lib/task-metrics";
+import { MemberTaskRow } from "@/components/team/TeamTaskRow";
+import { EmptyTasksState, LoadingSkeleton } from "@/components/team/TeamComponents";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -66,194 +63,63 @@ export default function TeamMemberPage({ params }: Props) {
     loadMember();
   }, [params, router]);
 
-  if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto px-6 py-16">
-        <div className="animate-pulse space-y-6">
-          <div className="h-12 bg-gray-200 rounded w-1/3"></div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-32 bg-gray-200 rounded-2xl"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+  if (loading) return <LoadingSkeleton />;
   if (!member) return null;
-  const { workload } = member;
 
   const stats = calculateTaskStats(member.tasks);
 
-
   return (
-    <div className="max-w-7xl mx-auto px-6 py-16 space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between">
+    <div className="max-w-7xl mx-auto px-6 py-10 space-y-8">
+
+      {/* 1. Top Navigation & Info */}
+      <section className="flex items-end justify-between border-b pb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">{member.name}</h1>
-          <p className="text-gray-500 mt-1">{member.email}</p>
+          <button onClick={() => router.push("/team")} className="text-blue-600 text-sm font-medium flex items-center gap-1 mb-4 hover:underline">
+            <ArrowLeft className="w-4 h-4" /> Back to Team
+          </button>
+          <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">{member.name}</h1>
+          <p className="text-lg text-gray-500">{member.email}</p>
         </div>
-        <button
-          onClick={() => router.push("/team")}
-          className="
-                  inline-flex items-center gap-2
-                  px-3 py-2 md:px-4
-                  text-sm font-medium
-                  text-gray-700
-                  bg-white border border-gray-200
-                  rounded-lg
-                  hover:bg-gray-50
-                  transition">
-          <ArrowLeft className="w-4 h-4" />
-          <span className="hidden md:inline">Back to Team</span>
-        </button>
+      </section>
 
+      {/* 2. Key Metrics Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard icon={<BarChart3 />} title="Total Tasks" value={member.totalTasks.toString()} subtitle={`${member.activeTasks} active`} color="blue" />
+        <StatCard icon={<Zap />} title="Active" value={member.workload.activeTasks.toString()} subtitle="In progress" color="purple" />
+        <StatCard icon={<AlertTriangle />} title="Overdue" value={member.workload.overdueTasks.toString()} subtitle="Requires action" color="red" />
+        <StatCard icon={<TrendingUp />} title="Success Rate" value={`${stats.completionRate}%`} subtitle="Tasks done" color="green" />
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <StatCard
-          icon={<BarChart3 className="w-6 h-6" />}
-          title="Total Tasks"
-          value={member.totalTasks.toString()}
-          subtitle={`${member.activeTasks} active`}
-          color="blue"
-        />
-        <StatCard
-          icon={<Zap className="w-6 h-6" />}
-          title="Active Tasks"
-          value={workload.activeTasks.toString()}
-          subtitle="In progress"
-          color="purple"
-        />
-        <StatCard
-          icon={<AlertTriangle className="w-6 h-6" />}
-          title="Overdue"
-          value={workload.overdueTasks.toString()}
-          subtitle="Need attention"
-          color="red"
-        />
-        <StatCard
-          icon={<TrendingUp className="w-6 h-6" />}
-          title="Completion Rate"
-          value={`${stats.completionRate}%`}
-          subtitle={`${member.completedTasks} completed`}
-          color="green"
-        />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* 3. Workload Breakdown (Stânga - 1/3) */}
+        <div className="lg:col-span-1 space-y-6">
+          <DashboardCard icon={<BarChart3 />} title="Performance" description="Current distribution" color="purple">
+            <div className="mt-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+              <span className="text-xs font-bold text-gray-400 uppercase">Workload Score</span>
+              <div className="text-4xl font-black text-gray-900 my-1">{member.workload.score}</div>
+              <p className="text-[10px] text-gray-500 leading-tight">Lower is better. Score is weighted by task urgency and delays.</p>
+            </div>
+            <div className="mt-6 space-y-4">
+              <MetricBar label="To Do" percentage={stats.todoPct} status="TODO" />
+              <MetricBar label="In Progress" percentage={stats.inProgressPct} status="IN_PROGRESS" />
+              <MetricBar label="Done" percentage={stats.donePct} status="DONE" />
+            </div>
+          </DashboardCard>
+        </div>
+
+        {/* 4. Task History (Dreapta - 2/3) */}
+        <div className="lg:col-span-2">
+          <DashboardCard icon={<CheckCircle2 />} title="Member Tasks" description="History of all assigned work" color="blue">
+            <div className="mt-4 space-y-3">
+              {member.tasks.length === 0 ? (
+                <EmptyTasksState />
+              ) : (
+                member.tasks.map((task) => <MemberTaskRow key={task.id} task={task} />)
+              )}
+            </div>
+          </DashboardCard>
+        </div>
       </div>
-
-      {/* Workload Score */}
-      <DashboardCard
-        icon={<BarChart3 className="w-6 h-6" />}
-        title="Workload Analysis"
-        description="Task distribution and workload score"
-        color="purple"
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-600">Workload Score</span>
-              <span className="text-2xl font-bold text-gray-900">{workload.score}</span>
-            </div>
-            <p className="text-xs text-gray-500">
-              Based on active tasks (×2) and overdue tasks (×3)
-            </p>
-          </div>
-          <div className="space-y-2">
-            <MetricBar
-              label="To Do"
-              percentage={stats.todoPct}
-              status="TODO"
-            />
-            <MetricBar
-              label="In Progress"
-              percentage={stats.inProgressPct}
-              status="IN_PROGRESS"
-            />
-            <MetricBar
-              label="Done"
-              percentage={stats.donePct}
-              status="DONE"
-            />
-          </div>
-        </div>
-      </DashboardCard>
-
-      {/* Task List */}
-      <DashboardCard
-        icon={<CheckCircle2 className="w-6 h-6" />}
-        title="All Tasks"
-        description={`${member.tasks.length} total tasks`}
-        color="blue"
-      >
-        <div className="mt-4 space-y-3">
-          {member.tasks.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle2 className="w-8 h-8 text-gray-400" />
-              </div>
-              <p className="text-gray-500">No tasks assigned yet</p>
-            </div>
-          ) : (
-            member.tasks.map((task: Task) => {
-              const dueDate = task.dueDate ? new Date(task.dueDate) : null;
-              const isOverdue = dueDate && task.status !== "DONE" && dueDate < new Date();
-
-              return (
-                <div
-                  key={task.id}
-                  className={`rounded-xl p-4 transition
-                      ${isOverdue
-                      ? "bg-red-50 border border-red-200"
-                      : "bg-white border border-gray-100 hover:shadow-sm"
-                    }
-                     `}
-                >
-
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-2">{task.title}</h3>
-                      {task.description && (
-                        <p className="text-sm text-gray-600 mb-3">{task.description}</p>
-                      )}
-                      <div className="flex items-center gap-4 text-sm">
-                        {/* Priority Badge */}
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm ${priorityStyles[task.priority]}`}>
-                          <Flag className="w-4 h-4" />
-                          {priorityLabels[task.priority]}
-                        </span>
-                        {/* Status Badge */}
-                        <span className={`text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md ${statusStyles[task.status as TaskStatus]}`}>
-                          {statusLabels[task.status as TaskStatus]}
-                        </span>
-                        <span
-                          className={`flex items-center gap-1.5 text-sm
-                             ${isOverdue ? "text-red-600 font-medium" : "text-gray-500"}
-                              `}
-                        >
-
-                          <Calendar className="w-3.5 h-3.5" />
-                          {formatDate(task.dueDate)}
-                        </span>
-                        {isOverdue && (
-                          <span className="flex items-center gap-1 px-2 py-1 text-xs font-semibold text-red-700 bg-red-100 rounded-md">
-                            <AlertTriangle className="w-3 h-3" />
-                            Overdue
-                          </span>
-                        )}
-
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-      </DashboardCard>
     </div>
   );
 }

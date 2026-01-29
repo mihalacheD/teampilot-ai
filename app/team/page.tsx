@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getTeamOverview } from "@/lib/team";
-import TeamMemberCard from "@/components/TeamMemberCard";
+import TeamMemberCard from "@/components/team/TeamMemberCard";
 
 export default async function TeamPage() {
   const session = await getServerSession(authOptions);
