@@ -1,32 +1,54 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { registerSchema } from "@/lib/validators/registerSchema";
-
+import { badRequestResponse, successResponse } from "@/lib/api/api-helpers";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const parsed = registerSchema.parse(body);
 
-    const existing = await prisma.user.findUnique({ where: { email: parsed.email }});
-    if (existing) {
-      return NextResponse.json({ error: "Email already registered" }, { status: 400 });
+    // Validate input
+    const validation = registerSchema.safeParse(body);
+    if (!validation.success) {
+      return badRequestResponse(
+        validation.error.issues[0]?.message || "Invalid input",
+      );
     }
 
-    const hashed = await bcrypt.hash(parsed.password, 10);
+    const { name, email, password, role } = validation.data;
 
+    // Check if user exists
+    const existing = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existing) {
+      return badRequestResponse("Email already registered");
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create user
     const user = await prisma.user.create({
       data: {
-        name: parsed.name,
-        email: parsed.email,
-        password: hashed,
-        role: parsed.role ?? "EMPLOYEE",
+        name,
+        email,
+        password: hashedPassword,
+        role: role || "EMPLOYEE",
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
       },
     });
 
-    return NextResponse.json({ id: user.id, email: user.email }, { status: 201 });
-  } catch (err: unknown) {
-    return NextResponse.json({ error: err instanceof Error ? err.message : "An error occurred" }, { status: 400 });
+    return successResponse(user, 201);
+  } catch (error) {
+    console.error("[REGISTER_ERROR]:", error);
+    return badRequestResponse(
+      error instanceof Error ? error.message : "Registration failed",
+    );
   }
 }

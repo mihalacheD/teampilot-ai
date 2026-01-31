@@ -1,82 +1,118 @@
 import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import {
+  getAuthenticatedSession,
+  unauthorizedResponse,
+  forbiddenResponse,
+  notFoundResponse,
+  badRequestResponse,
+  serverErrorResponse,
+  successResponse,
+} from "@/lib/api/api-helpers";
 
-const updateStatusSchema = z.object({
+const updateTaskSchema = z.object({
   status: z.enum(["TODO", "IN_PROGRESS", "DONE"]).optional(),
-  title: z.string().min(1).optional(),
-  description: z
-    .string()
-    .max(500, "Description must be less than 500 characters")
-    .optional(),
+  title: z.string().min(1).max(50).optional(),
+  description: z.string().max(500).optional(),
 });
 
+// PATCH /api/tasks/[id]
 export async function PATCH(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
-  const session = await getServerSession(authOptions);
+  const session = await getAuthenticatedSession();
+
   if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return unauthorizedResponse();
   }
 
-  const body = await req.json();
-  const result = updateStatusSchema.safeParse(body);
+  try {
+    const body = await req.json();
+    const { id } = await params;
 
-  if (!result.success) {
-    return NextResponse.json({ error: "Invalid data" }, { status: 400 });
+    // Validate input
+    const validation = updateTaskSchema.safeParse(body);
+    if (!validation.success) {
+      return badRequestResponse(
+        validation.error.issues[0]?.message || "Invalid update data",
+      );
+    }
+
+    // Check if task exists
+    const existingTask = await prisma.task.findUnique({
+      where: { id },
+    });
+
+    if (!existingTask) {
+      return notFoundResponse("Task not found");
+    }
+
+    // Permission check: Employees can only edit their own tasks
+    if (
+      session.user.role === "EMPLOYEE" &&
+      existingTask.userId !== session.user.id
+    ) {
+      return forbiddenResponse("You can only edit your own tasks");
+    }
+
+    // Update task
+    const updatedTask = await prisma.task.update({
+      where: { id },
+      data: validation.data,
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    return successResponse(updatedTask);
+  } catch (error) {
+    console.error("[TASK_PATCH_ERROR]:", error);
+    return serverErrorResponse();
   }
-
-  const { id } = await params;
-
-  const existingTask = await prisma.task.findUnique({
-    where: { id: id },
-  });
-
-  if (!existingTask) {
-    return NextResponse.json({ error: "Task not found" }, { status: 404 });
-  }
-
-  if (
-    session.user.role === "EMPLOYEE" &&
-    existingTask.userId !== session.user.id
-  ) {
-    return NextResponse.json(
-      { error: "You can only edit your own tasks" },
-      { status: 403 }
-    );
-  }
-
-  const task = await prisma.task.update({
-    where: { id: id },
-    data: result.data,
-  });
-
-  return NextResponse.json(task);
 }
 
+// DELETE /api/tasks/[id]
 export async function DELETE(
-  _: Request,
-  { params }: { params: Promise<{ id: string }> }
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> },
 ) {
-  const session = await getServerSession(authOptions);
+  const session = await getAuthenticatedSession();
+
   if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return unauthorizedResponse();
   }
 
   if (session.user.role !== "MANAGER") {
-    return NextResponse.json(
-      { error: "Only managers can delete tasks" },
-      { status: 403 }
-    );
+    return forbiddenResponse("Only managers can delete tasks");
   }
-  const { id } = await params;
 
-  await prisma.task.delete({
-    where: { id: id },
-  });
+  try {
+    const { id } = await params;
 
-  return NextResponse.json({ success: true });
+    // Check if task exists
+    const existingTask = await prisma.task.findUnique({
+      where: { id },
+    });
+
+    if (!existingTask) {
+      return notFoundResponse("Task not found");
+    }
+
+    // Delete task
+    await prisma.task.delete({
+      where: { id },
+    });
+
+    return successResponse({ success: true, message: "Task deleted" });
+  } catch (error) {
+    console.error("[TASK_DELETE_ERROR]:", error);
+    return serverErrorResponse();
+  }
 }

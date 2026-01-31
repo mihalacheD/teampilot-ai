@@ -35,6 +35,9 @@ export default function RegisterPage() {
   } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
+      name: "",
+      email: "",
+      password: "",
       role: "EMPLOYEE",
     },
   });

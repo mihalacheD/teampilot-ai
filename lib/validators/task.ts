@@ -1,9 +1,12 @@
 import { z } from "zod";
 
+const PriorityEnum = z.enum(["LOW", "MEDIUM", "HIGH"]);
+
 export const createTaskSchema = z.object({
   title: z.string().min(1, "Title is required").max(50, "Title is too long (max 50 chars)"),
   description: z.string().max(500).optional(),
-  userId: z.string().uuid("Invalid user ID"),
+  priority: PriorityEnum.default("MEDIUM"),
+  userId: z.string().min(1,"Invalid user ID"),
   dueDate: z.string().optional(),
 });
 

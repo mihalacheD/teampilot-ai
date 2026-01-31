@@ -1,84 +1,104 @@
 import { prisma } from "@/lib/prisma";
 import { createTaskSchema } from "@/lib/validators/task";
-import { NextResponse } from "next/server";
-import { requireManagerSession } from "@/lib/authServer";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import {
+  getAuthenticatedSession,
+  unauthorizedResponse,
+  notFoundResponse,
+  badRequestResponse,
+  serverErrorResponse,
+  successResponse,
+  forbiddenResponse,
+} from "@/lib/api/api-helpers";
 
 // GET /api/tasks
 export async function GET() {
-  const session = await getServerSession(authOptions);
+  const session = await getAuthenticatedSession();
 
   if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return unauthorizedResponse();
   }
-  const isManager = session.user.role === "MANAGER";
 
-  const tasks = await prisma.task.findMany({
-    where: isManager ? {} : { userId: session.user.id },
-    orderBy:[ { createdAt: "desc" },{ priority: "desc" }],
-    include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
+  try {
+    const isManager = session.user.role === "MANAGER";
+
+    const tasks = await prisma.task.findMany({
+      where: isManager ? {} : { userId: session.user.id },
+      orderBy: [{ status: "asc" }, { priority: "desc" }, { createdAt: "desc" }],
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  return NextResponse.json(tasks);
+    return successResponse(tasks);
+  } catch (error) {
+    console.error("[TASKS_GET_ERROR]:", error);
+    return serverErrorResponse();
+  }
 }
 
 // POST /api/tasks
 export async function POST(req: Request) {
-  const resultSession = await requireManagerSession();
+  const session = await getAuthenticatedSession();
 
-  // Verificăm dacă rezultatul este un Response (erore 401/403)
-  if (resultSession instanceof Response) {
-    return resultSession;
+  if (!session) {
+    return unauthorizedResponse();
+  }
+
+  if (session.user.role !== "MANAGER") {
+    return forbiddenResponse("Only managers can create tasks");
   }
 
   try {
     const body = await req.json();
-    const validation = createTaskSchema.safeParse(body);
 
+    // Validate input
+    const validation = createTaskSchema.safeParse(body);
     if (!validation.success) {
-      return NextResponse.json(
-        { errors: validation.error.flatten() },
-        { status: 400 }
+      return badRequestResponse(
+        validation.error.issues[0]?.message || "Invalid task data",
       );
     }
+
     const { title, description, priority, userId, dueDate } = validation.data;
 
-    const user = await prisma.user.findUnique({
+    // Verify user exists
+    const userExists = await prisma.user.findUnique({
       where: { id: userId },
     });
 
-    if (!user) {
-      return NextResponse.json(
-        { error: "Assigned user not found" },
-        { status: 404 }
-      );
+    if (!userExists) {
+      return notFoundResponse("Assigned user not found");
     }
 
-    const newTask = await prisma.task.create({
+    // Create task
+    const task = await prisma.task.create({
       data: {
         title,
         description,
-        priority: priority || "MEDIUM",
+        priority,
         userId,
         dueDate: dueDate ? new Date(dueDate) : null,
       },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
     });
 
-    return NextResponse.json(newTask, { status: 201 });
-  } catch (err) {
-    console.error("[TASKS_POST_ERROR]:", err);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
+    return successResponse(task, 201);
+  } catch (error) {
+    console.error("[TASKS_POST_ERROR]:", error);
+    return serverErrorResponse();
   }
 }
