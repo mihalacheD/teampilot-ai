@@ -31,8 +31,12 @@ const TaskForm = ({ onCreate }: TaskFormProps) => {
   } = useForm<CreateTaskClientInput>({
     resolver: zodResolver(createTaskClientSchema),
     defaultValues: {
+      title: "",
+      description: "",
       priority: "MEDIUM",
-    },
+      userId: "",
+      dueDate: "",
+    }
   });
 
   const descriptionValue = useWatch({ control, name: "description" }) || "";

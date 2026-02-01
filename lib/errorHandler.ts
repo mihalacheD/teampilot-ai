@@ -1,13 +1,20 @@
 import axios from "axios";
 
 export function getErrorMessage(error: unknown): string {
-  let message = "An unexpected error occurred. Please try again.";
+  const fallback = "An unexpected error occurred. Please try again.";
 
   if (axios.isAxiosError(error)) {
-    message = error.response?.data?.message || error.message || message;
-  } else if (error instanceof Error) {
-    message = error.message;
+    return (
+      error.response?.data?.error ||
+      error.response?.data?.message ||
+      error.message ||
+      fallback
+    );
   }
 
-  return message;
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return fallback;
 }
