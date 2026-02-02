@@ -1,13 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useCallback } from "react";
 import api from "@/lib/axios";
 import { DailySummary } from "@/lib/ai/ai-helpers";
 
-
 type SummaryResponse = {
-  summary: DailySummary;
+  summary: DailySummary | null;
   cached: boolean;
-  generatedAt: Date;
+  generatedAt?: Date;
+  message?: string;
   rateLimit?: {
     remaining: number;
     resetAt: Date;
@@ -23,31 +22,36 @@ export function useAISummary() {
     remaining: number;
     resetAt: Date;
   } | null>(null);
+  const [hasGenerated, setHasGenerated] = useState(false);
 
   const fetchSummary = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await api.post<SummaryResponse>("/ai/summary");
+      const response = await api.get<SummaryResponse>("/ai/summary");
       setSummary(response.data.summary);
       setCached(response.data.cached);
       setRateLimit(response.data.rateLimit || null);
-    } catch (err: any) {
+      setHasGenerated(response.data.summary !== null);
+    } catch (err: unknown) {
       console.error("Error fetching AI summary:", err);
-      setError(err.message || "Failed to generate AI summary");
+      const error = err as {
+        message?: string;
+        data?: { rateLimit?: { remaining: number; resetAt: Date } };
+      };
+      setError(error.message || "Failed to fetch AI summary");
       setSummary(null);
 
-      // Extract rate limit from error response
-      if (err.data?.rateLimit) {
-        setRateLimit(err.data.rateLimit);
+      if (error.data?.rateLimit) {
+        setRateLimit(error.data.rateLimit);
       }
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const regenerate = useCallback(async () => {
+  const generateSummary = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -59,13 +63,17 @@ export function useAISummary() {
       setSummary(response.data.summary);
       setCached(false);
       setRateLimit(response.data.rateLimit || null);
-    } catch (err: any) {
-      console.error("Error regenerating summary:", err);
-      setError(err.message || "Failed to regenerate summary");
+      setHasGenerated(true);
+    } catch (err: unknown) {
+      console.error("Error generating summary:", err);
+      const error = err as {
+        message?: string;
+        data?: { rateLimit?: { remaining: number; resetAt: Date } };
+      };
+      setError(error.message || "Failed to generate summary");
 
-      // Extract rate limit from error response
-      if (err.data?.rateLimit) {
-        setRateLimit(err.data.rateLimit);
+      if (error.data?.rateLimit) {
+        setRateLimit(error.data.rateLimit);
       }
     } finally {
       setLoading(false);
@@ -78,7 +86,8 @@ export function useAISummary() {
     error,
     cached,
     rateLimit,
+    hasGenerated,
     fetchSummary,
-    regenerate,
+    generateSummary,
   };
 }
