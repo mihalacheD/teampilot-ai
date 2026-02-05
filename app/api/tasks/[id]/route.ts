@@ -9,6 +9,7 @@ import {
   serverErrorResponse,
   successResponse,
 } from "@/lib/api/api-helpers";
+import { requireNotDemo } from "@/lib/demo/require-not-demo";
 
 const updateTaskSchema = z.object({
   status: z.enum(["TODO", "IN_PROGRESS", "DONE"]).optional(),
@@ -26,6 +27,9 @@ export async function PATCH(
   if (!session) {
     return unauthorizedResponse();
   }
+
+  const demoBlock = await requireNotDemo("updating tasks");
+  if (demoBlock) return demoBlock;
 
   try {
     const body = await req.json();
@@ -53,7 +57,9 @@ export async function PATCH(
       session.user.role === "EMPLOYEE" &&
       existingTask.userId !== session.user.id
     ) {
-      return forbiddenResponse("You can only edit your own tasks");
+      return forbiddenResponse("You can only edit your own tasks", {
+        isDemo: false,
+      });
     }
 
     // Update task
@@ -89,8 +95,13 @@ export async function DELETE(
     return unauthorizedResponse();
   }
 
+  const demoBlock = await requireNotDemo("deleting tasks");
+  if (demoBlock) return demoBlock;
+
   if (session.user.role !== "MANAGER") {
-    return forbiddenResponse("Only managers can delete tasks");
+    return forbiddenResponse("Only managers can delete tasks", {
+      isDemo: false,
+    });
   }
 
   try {

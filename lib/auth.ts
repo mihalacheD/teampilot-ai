@@ -3,12 +3,15 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { getDemoRole, isDemoUser } from "./demo/demo-user";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
+
   session: {
     strategy: "jwt",
   },
+
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -16,8 +19,34 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
       },
+
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
+        if (!credentials?.email) return null;
+
+        /**
+         * 🟢 DEMO USERS (fără DB, fără parolă)
+         */
+        if (isDemoUser(credentials.email)) {
+          const role = getDemoRole(credentials.email);
+          if (!role) return null;
+
+          const dbUser = await prisma.user.findUnique({
+            where: { email: credentials.email },
+          });
+
+          return {
+            id: dbUser?.id || `demo-${role.toLowerCase()}`,
+            email: credentials.email,
+            name: dbUser?.name || "Demo User",
+            role,
+            isDemo: true,
+          };
+        }
+
+        /**
+         * 🔵 REAL USERS (din DB)
+         */
+        if (!credentials.password) return null;
 
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
@@ -34,32 +63,37 @@ export const authOptions: NextAuthOptions = {
 
         const isValid = await bcrypt.compare(
           credentials.password,
-          user.password
+          user.password,
         );
+
         if (!isValid) return null;
 
         return {
           id: user.id,
-          name: user.name,
           email: user.email,
+          name: user.name,
           role: user.role,
+          isDemo: false,
         };
       },
     }),
   ],
+
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
         token.role = user.role;
+        token.isDemo = user.isDemo;
       }
       return token;
     },
 
     async session({ session, token }) {
-      if (session.user && token) {
+      if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as "MANAGER" | "EMPLOYEE";
+        session.user.isDemo = token.isDemo as boolean;
       }
       return session;
     },
@@ -68,6 +102,7 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: "/auth/signin",
   },
+
   secret: process.env.NEXTAUTH_SECRET,
 };
 

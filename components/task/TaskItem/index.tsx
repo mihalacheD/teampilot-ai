@@ -35,24 +35,38 @@ export type TaskItemProps = {
 
 export function TaskItem({ task, isLoading, onStatusChange, onEdit, onDelete }: TaskItemProps) {
   const { data: session } = useSession();
+
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(task.title);
   const [editDesc, setEditDesc] = useState(task.description ?? "");
   const [isExpanded, setIsExpanded] = useState(false);
 
+
   if (!session) return null;
 
-  const userRole = session.user.role as "MANAGER" | "EMPLOYEE";
-  const currentUserId = session.user.id;
-
-  const permissions = {
-    canEdit: canEditTask(userRole, task.userId, currentUserId),
-    canDelete: canDeleteTask(userRole, task.userId, currentUserId),
-    canChangeStatus: canChangeTaskStatus(userRole, task.userId, currentUserId),
+  const permissionCtx = {
+    role: session.user.role,
+    isDemo: session.user.isDemo ?? false,
+    taskUserId: task.userId,
+    currentUserId: session.user.id,
   };
 
-  const assignedLabel = task.user?.name || task.user?.email || (task.userId === currentUserId ? "You" : "Unknown");
-  const isOverdue = task.dueDate && task.status !== "DONE" && new Date(task.dueDate) < new Date();
+  const permissions = {
+    canEdit: canEditTask(permissionCtx),
+    canDelete: canDeleteTask(permissionCtx),
+    canChangeStatus: canChangeTaskStatus(permissionCtx),
+  };
+
+
+  const assignedLabel =
+    task.user?.name ||
+    task.user?.email ||
+    (task.userId === session.user.id ? "You" : "Unknown");
+
+  const isOverdue =
+    task.dueDate &&
+    task.status !== "DONE" &&
+    new Date(task.dueDate) < new Date();
 
   return (
     <li className={`group rounded-2xl border p-4 md:p-5 shadow-sm transition-all overflow-hidden ${isOverdue ? "bg-red-50 border-red-200" : "bg-white border-gray-100 hover:shadow-md"
@@ -74,7 +88,7 @@ export function TaskItem({ task, isLoading, onStatusChange, onEdit, onDelete }: 
             <ViewMode
               task={task}
               canEdit={permissions.canEdit}
-              currentUserId={currentUserId}
+              currentUserId={session.user.id}
               assignedLabel={assignedLabel}
               isExpanded={isExpanded}
               onExpand={setIsExpanded}

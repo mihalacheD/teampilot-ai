@@ -47,9 +47,10 @@ export function TaskItem({ task, isLoading, onStatusChange, onEdit, onDelete }: 
     (task.userId === currentUserId ? "You" : "Unknown");
 
 
-  const canEdit = canEditTask(userRole, task.userId, currentUserId);
-  const canDelete = canDeleteTask(userRole, task.userId, currentUserId);
-  const canChangeStatus = canChangeTaskStatus(userRole, task.userId, currentUserId);
+  const permissionCtx = { role: userRole, taskUserId: task.userId, currentUserId, isDemo: false };
+  const canEdit = canEditTask(permissionCtx);
+  const canDelete = canDeleteTask(permissionCtx);
+  const canChangeStatus = canChangeTaskStatus(permissionCtx);
 
   const handleSave = () => {
     if (!canEdit) return;

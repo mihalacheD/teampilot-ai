@@ -5,7 +5,7 @@ export const priorityStyles: Record<Priority, string> = {
   LOW: "bg-gray-100 text-gray-800 border-gray-300",
   MEDIUM: "bg-blue-100 text-blue-800 border-blue-300",
   HIGH: "bg-orange-100 text-orange-800 border-orange-400",
-  URGENT:"bg-red-600 text-white border-red-700 animate-pulse",
+  URGENT:"bg-red-200 text-red-600 border-red-700 animate-pulse",
 };
 
 export const priorityLabels: Record<Priority, string> = {

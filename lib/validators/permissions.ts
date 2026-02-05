@@ -1,42 +1,85 @@
+export type Role = "MANAGER" | "EMPLOYEE";
+
+export type PermissionContext = {
+  role?: Role;
+  isDemo?: boolean;
+  taskUserId: string;
+  currentUserId: string;
+};
+
 export const PERMISSIONS = {
   MANAGER: {
     canCreateTask: true,
     canEditAnyTask: true,
     canDeleteAnyTask: true,
     canViewAllTasks: true,
-    canChangeTaskStatus: true,
+    canChangeTaskStatusAny: true,
   },
   EMPLOYEE: {
     canCreateTask: false,
     canEditAnyTask: false,
     canDeleteAnyTask: false,
     canViewAllTasks: true,
-    canChangeTaskStatus: true, // Poate schimba status doar la task-urile proprii
+    canChangeTaskStatusAny: false,
   },
 } as const;
 
-export function canEditTask(
-  userRole: "MANAGER" | "EMPLOYEE",
-  taskUserId: string,
-  currentUserId: string
-) {
-  return userRole === "MANAGER"; // Doar Managerul poate edita orice task
+/* =========================
+   Helpers defensive (SAFE)
+   ========================= */
+function getPermissions(role?: Role) {
+  if (!role) return null;
+  return PERMISSIONS[role] ?? null;
 }
 
-export function canDeleteTask(
-  userRole: "MANAGER" | "EMPLOYEE",
-  taskUserId: string,
-  currentUserId: string
-) {
-  if (userRole === "MANAGER") return true;
-  return false; // Employee NU poate șterge task-uri
+export function canCreateTask(ctx: PermissionContext): boolean {
+  // ✅ ONLY block if explicitly demo
+  if (ctx.isDemo === true) return false;
+
+  if (!ctx.role) return false;
+
+  const permissions = getPermissions(ctx.role);
+  if (!permissions) return false;
+
+  return permissions.canCreateTask;
 }
 
-export function canChangeTaskStatus(
-  userRole: "MANAGER" | "EMPLOYEE",
-  taskUserId: string,
-  currentUserId: string
-) {
-  if (userRole === "MANAGER") return true;
-  return taskUserId === currentUserId; // Employee poate schimba status doar la task-urile lui
+export function canEditTask(ctx: PermissionContext): boolean {
+  // ✅ ONLY block if explicitly demo
+  if (ctx.isDemo === true) return false;
+
+  if (!ctx.role) return false;
+
+  const permissions = getPermissions(ctx.role);
+  if (!permissions) return false;
+
+  if (permissions.canEditAnyTask) return true;
+
+  return ctx.taskUserId === ctx.currentUserId;
+}
+
+export function canDeleteTask(ctx: PermissionContext): boolean {
+  // ✅ ONLY block if explicitly demo
+  if (ctx.isDemo === true) return false;
+
+  if (!ctx.role) return false;
+
+  const permissions = getPermissions(ctx.role);
+  if (!permissions) return false;
+
+  return permissions.canDeleteAnyTask;
+}
+
+export function canChangeTaskStatus(ctx: PermissionContext): boolean {
+  // ✅ ONLY block if explicitly demo
+  if (ctx.isDemo === true) return false;
+
+  if (!ctx.role) return false;
+
+  const permissions = getPermissions(ctx.role);
+  if (!permissions) return false;
+
+  if (permissions.canChangeTaskStatusAny) return true;
+
+  return ctx.taskUserId === ctx.currentUserId;
 }

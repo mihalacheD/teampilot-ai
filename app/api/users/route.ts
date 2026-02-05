@@ -10,7 +10,7 @@ export async function GET() {
   const session = await getAuthenticatedSession();
 
   if (!session || session.user.role !== "MANAGER") {
-    return forbiddenResponse("Only managers can view users");
+    return forbiddenResponse("Only managers can view users", { isDemo: false });
   }
 
   try {

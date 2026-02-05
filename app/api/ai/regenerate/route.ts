@@ -17,6 +17,7 @@ import {
 import { checkRateLimit } from "@/lib/ai/ai-rate-limit";
 import OpenAI from "openai";
 import { Prisma } from "@prisma/client";
+import { assertCanRegenerate } from "@/lib/ai/ai-guard";
 
 export async function POST() {
   const session = await getAuthenticatedSession();
@@ -26,12 +27,16 @@ export async function POST() {
   }
 
   if (session.user.role !== "MANAGER") {
-    return forbiddenResponse("Only managers can regenerate AI summaries");
+    return forbiddenResponse("Only managers can regenerate AI summaries", { isDemo: false });
   }
 
   try {
     const today = getTodayKey();
 
+    const dailySummary = await prisma.dailySummary.findUnique({
+      where: { date: today },
+    });
+    assertCanRegenerate(dailySummary?.regenerateCount);
     // 1️⃣ Check rate limit BEFORE regenerating
     const rateLimit = await checkRateLimit();
 
@@ -44,7 +49,7 @@ export async function POST() {
             resetAt: rateLimit.resetAt,
           },
         },
-        { status: 429 }
+        { status: 429 },
       );
     }
 
@@ -55,10 +60,7 @@ export async function POST() {
         status: true,
         dueDate: true,
       },
-      orderBy: [
-        { status: "asc" },
-        { dueDate: "asc" },
-      ],
+      orderBy: [{ status: "asc" }, { dueDate: "asc" }],
     });
 
     if (tasks.length === 0) {
@@ -143,12 +145,14 @@ export async function POST() {
 
     if (error instanceof OpenAI.APIError) {
       if (error.status === 429) {
-        return serverErrorResponse("OpenAI rate limit exceeded. Please wait a moment.");
+        return serverErrorResponse(
+          "OpenAI rate limit exceeded. Please wait a moment.",
+        );
       }
     }
 
     return serverErrorResponse(
-      error instanceof Error ? error.message : "Failed to regenerate summary"
+      error instanceof Error ? error.message : "Failed to regenerate summary",
     );
   }
 }

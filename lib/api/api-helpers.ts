@@ -14,8 +14,8 @@ export function unauthorizedResponse(message = "Unauthorized") {
   return NextResponse.json({ error: message }, { status: 401 });
 }
 
-export function forbiddenResponse(message = "Forbidden") {
-  return NextResponse.json({ error: message }, { status: 403 });
+export function forbiddenResponse(message = "Forbidden",  { isDemo }: { isDemo: boolean; }) {
+  return NextResponse.json({ error: message, isDemo }, { status: 403 });
 }
 
 export function notFoundResponse(message = "Not found") {

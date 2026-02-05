@@ -9,6 +9,7 @@ import {
   successResponse,
   forbiddenResponse,
 } from "@/lib/api/api-helpers";
+import { requireNotDemo } from "@/lib/demo/require-not-demo";
 
 // GET /api/tasks
 export async function GET() {
@@ -50,8 +51,14 @@ export async function POST(req: Request) {
     return unauthorizedResponse();
   }
 
+  const demoBlock = await requireNotDemo("creating tasks");
+  if (demoBlock) return demoBlock;
+
+
   if (session.user.role !== "MANAGER") {
-    return forbiddenResponse("Only managers can create tasks");
+    return forbiddenResponse("Only managers can create tasks", {
+      isDemo: false,
+    });
   }
 
   try {
