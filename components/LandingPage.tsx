@@ -1,13 +1,52 @@
-import { CheckCircle2, BarChart3, Users, Sparkles, ArrowRight, Zap } from "lucide-react";
-import Link from "next/link";
+'use client';
 
+import { CheckCircle2, BarChart3, Users, Sparkles, ArrowRight, Zap, Eye, Shield } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 
 export default function LandingPage() {
+  const router = useRouter();
+
+  const handleDemoLogin = async (email: string) => {
+    try {
+      const result = await signIn("credentials", {
+        email,
+        redirect: false,
+      });
+
+      if (result?.ok) {
+        router.push("/");
+        router.refresh();
+      }
+    } catch (error) {
+      console.error("Demo login failed", error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-indigo-50">
+      {/* Top Bar with Auth Links */}
+      <div className="max-w-6xl mx-auto px-6 py-4">
+        <div className="flex justify-end gap-3">
+          <Link
+            href="/auth/signin"
+            className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors"
+          >
+            Sign In
+          </Link>
+          <Link
+            href="/auth/register"
+            className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors"
+          >
+            Register
+          </Link>
+        </div>
+      </div>
+
       {/* Hero Section */}
-      <div className="max-w-6xl mx-auto px-6 py-20">
-        <div className="text-center space-y-6 mb-16">
+      <div className="max-w-6xl mx-auto px-6 pt-12 pb-20">
+        <div className="text-center space-y-6 mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium mb-4">
             <Sparkles className="w-4 h-4" />
             AI-Powered Team Management
@@ -25,22 +64,84 @@ export default function LandingPage() {
             A lightweight task management platform with role-based access and AI-powered insights.
             Perfect for small teams who want to work smarter.
           </p>
+        </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
-            <Link
-              href="/auth/register"
-              className="group px-8 py-4 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
-            >
-              Get Started Free
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
+        {/* Demo CTA - Primary Focus */}
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-linear-to-br from-blue-600 to-indigo-600 rounded-2xl p-8 shadow-2xl border border-blue-400/20">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <Eye className="w-5 h-5 text-blue-100" />
+              <p className="text-sm font-semibold text-blue-100 uppercase tracking-wider">
+                Try It Now - No Signup Required
+              </p>
+            </div>
+            
+            <h2 className="text-2xl md:text-3xl font-bold text-white text-center mb-3">
+              Experience TeamPilot in Action
+            </h2>
+            
+            <p className="text-blue-100 text-center mb-8 max-w-xl mx-auto">
+              Explore the full platform instantly. Choose your role and see how TeamPilot 
+              streamlines team collaboration and task management.
+            </p>
 
-            <Link
-              href="/auth/signin"
-              className="px-8 py-4 bg-white hover:bg-gray-50 text-gray-900 rounded-xl font-semibold border-2 border-gray-200 hover:border-gray-300 transition-all"
-            >
-              Sign In
-            </Link>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Manager Demo Button */}
+              <button
+                onClick={() => handleDemoLogin('manager@demo.com')}
+                className="group relative bg-white hover:bg-gray-50 rounded-xl p-6 transition-all hover:scale-105 hover:shadow-xl"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-linear-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                    <Users className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="text-left flex-1">
+                    <h3 className="text-lg font-bold text-gray-900 mb-1">
+                      Manager View
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-3">
+                      Full team oversight, task creation, and AI analytics
+                    </p>
+                    <div className="flex items-center gap-1 text-indigo-600 font-medium text-sm">
+                      <span>Explore Dashboard</span>
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </div>
+                </div>
+                <div className="absolute top-3 right-3 bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-1 rounded-full">
+                  RECOMMENDED
+                </div>
+              </button>
+
+              {/* Employee Demo Button */}
+              <button
+                onClick={() => handleDemoLogin('employee@demo.com')}
+                className="group relative bg-white hover:bg-gray-50 rounded-xl p-6 transition-all hover:scale-105 hover:shadow-xl"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-linear-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                    <Zap className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="text-left flex-1">
+                    <h3 className="text-lg font-bold text-gray-900 mb-1">
+                      Employee View
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-3">
+                      Personal task management and progress tracking
+                    </p>
+                    <div className="flex items-center gap-1 text-emerald-600 font-medium text-sm">
+                      <span>Explore Tasks</span>
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            <div className="mt-6 flex items-center justify-center gap-2 text-blue-100 text-sm">
+              <Shield className="w-4 h-4" />
+              <span>Demo mode • Read-only for data protection • No credit card needed</span>
+            </div>
           </div>
         </div>
 
@@ -123,8 +224,19 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
+
+        {/* Bottom CTA */}
+        <div className="mt-16 text-center">
+          <p className="text-gray-600 mb-4">Ready to get started with your own team?</p>
+          <Link
+            href="/auth/register"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+          >
+            Create Your Free Account
+            <ArrowRight className="w-5 h-5" />
+          </Link>
+        </div>
       </div>
     </div>
-  )
+  );
 }
-
