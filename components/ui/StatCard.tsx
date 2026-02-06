@@ -4,7 +4,7 @@ interface StatCardProps {
   title: string;
   value: string | number;
   subtitle: string;
-  color: "blue" | "green" | "yellow" | "purple" | "red";
+  color: "blue" | "green" | "yellow" | "purple" | "red" | "orange";
 }
 
 export default function StatCard({ icon, title, value, subtitle, color }: StatCardProps) {
@@ -12,6 +12,7 @@ export default function StatCard({ icon, title, value, subtitle, color }: StatCa
     blue: "from-blue-50 to-blue-100 border-blue-200 text-blue-600",
     green: "from-green-50 to-green-100 border-green-200 text-green-600",
     yellow: "from-yellow-50 to-yellow-100 border-yellow-200 text-yellow-600",
+    orange: "from-orange-50 to-orange-100 border-orange-200 text-orange-600",
     purple: "from-purple-50 to-purple-100 border-purple-200 text-purple-600",
     red: "from-red-50 to-red-100 border-red-200 text-red-600",
   };
@@ -20,6 +21,7 @@ export default function StatCard({ icon, title, value, subtitle, color }: StatCa
     blue: "text-blue-600",
     green: "text-green-600",
     yellow: "text-yellow-600",
+    orange: "text-orange-600",
     purple: "text-purple-600",
     red: "text-red-600",
   };

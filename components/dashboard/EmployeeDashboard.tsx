@@ -6,6 +6,7 @@ import {
   Clock,
   Target,
   ArrowRight,
+  AlertTriangle
 } from "lucide-react";
 import DashboardCard from "@/components/dashboard/DashboardCard";
 import StatCard from "@/components/ui/StatCard";
@@ -20,6 +21,7 @@ type EmployeeDashboardProps = {
       inProgress: number;
       completed: number;
       completionRate: number;
+      urgent: number;
     };
     recentTasks: {
       id: string;
@@ -35,13 +37,20 @@ export default function EmployeeDashboard({ data }: EmployeeDashboardProps) {
   return (
     <div className="space-y-6">
       {/* Quick Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <StatCard
           icon={<CheckCircle2 className="w-6 h-6" />}
           title="Active Tasks"
           value={stats.active.toString()}
           subtitle="Assigned to you"
           color="blue"
+        />
+        <StatCard
+          icon={<AlertTriangle className="w-6 h-6" />}
+          title="Urgent Tasks"
+          value={stats.urgent.toString()}
+          color="red"
+          subtitle="Needs attention"
         />
         <StatCard
           icon={<Clock className="w-6 h-6" />}

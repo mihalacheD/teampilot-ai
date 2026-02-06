@@ -3,9 +3,8 @@ import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import ManagerDashboard from "@/components/dashboard/ManagerDashboard";
 import EmployeeDashboard from "@/components/dashboard/EmployeeDashboard";
-import { getManagerDashboardData } from "@/lib/manager";
-import { getEmployeeDashboardData } from "@/lib/employee";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { getEmployeeDashboardData, getManagerDashboardData } from "@/lib/dashboard";
 
 
 export default async function DashboardPage() {

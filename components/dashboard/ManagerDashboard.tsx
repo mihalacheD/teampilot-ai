@@ -7,16 +7,18 @@ import {
   Users,
   Sparkles,
   BarChart3,
-  Zap,
   UserCircle,
+  Clock,
+  AlertTriangle,
 } from "lucide-react";
 import DashboardCard from "@/components/dashboard/DashboardCard";
 import MetricBar from "@/components/ui/MetricBar";
 import StatCard from "@/components/ui/StatCard";
 import { calculateMetricsPercentages } from "@/lib/task-metrics";
 import DashboardBanner from "./DashboardBanner";
-import { ManagerDashboardData } from "@/lib/manager";
+import { ManagerDashboardData } from "@/lib/dashboard";
 import TeamTaskPreview from "./TeamTaskPreview";
+
 
 type ManagerDashboardProps = {
   data: ManagerDashboardData;
@@ -31,34 +33,53 @@ export default function ManagerDashboard({ data }: ManagerDashboardProps) {
   return (
     <div className="space-y-6">
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <StatCard
-          icon={<CheckCircle2 className="w-6 h-6" />}
           title="Total Tasks"
-          value={data.stats.totalTasks.toString()}
-          subtitle={`${data.stats.activeTasks} active`}
+          value={data.stats.totalTasks}
           color="blue"
+          icon={<CheckCircle2 />}
+          subtitle="Across the team"
         />
+
         <StatCard
-          icon={<Users className="w-6 h-6" />}
-          title="Team Members"
-          value={data.stats.teamMembers.toString()}
-          subtitle="All active"
+          title="Active Tasks"
+          value={data.stats.activeTasks}
           color="purple"
+          icon={<Clock />}
+          subtitle="In progress & todo"
         />
+
         <StatCard
-          icon={<TrendingUp className="w-6 h-6" />}
-          title="Completion Rate"
-          value={`${data.stats.completionRate}%`}
-          subtitle="Overall progress"
+          title="Overdue"
+          value={data.stats.overdue}
+          color="red"
+          icon={<AlertTriangle />}
+          subtitle="Needs attention"
+        />
+
+        <StatCard
+          title="Urgent Tasks"
+          value={data.stats.urgent}
+          color="orange"
+          icon={<AlertTriangle />}
+          subtitle="Needs attention"
+        />
+
+        <StatCard
+          title="Completion"
+          value={data.stats.completionRate + "%"}
           color="green"
+          icon={<TrendingUp />}
+          subtitle="Overall efficiency"
         />
+
         <StatCard
-          icon={<Zap className="w-6 h-6" />}
-          title="Productivity"
-          value={`${data.stats.completionRate}%`}
-          subtitle="Tasks completed"
+          title="Team Members"
+          value={data.stats.teamMembers ?? 0}
           color="yellow"
+          icon={<Users />}
+          subtitle="Active employees"
         />
       </div>
 
