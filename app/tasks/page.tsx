@@ -1,4 +1,4 @@
-import { TaskList } from "../../components/task/TaskList";
+import { TaskList } from "@/components/task/TaskList";
 import { Suspense } from "react";
 
 export default function TasksPage() {

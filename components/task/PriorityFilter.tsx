@@ -7,7 +7,7 @@ interface PriorityFilterProps {
 
 export function PriorityFilter({ current, onChange }: PriorityFilterProps) {
   return (
-    <div className="flex flex-wrap gap-2 mb-6">
+    <div className="flex flex-wrap items-center gap-2 ">
       <FilterButton
         label="All"
         active={current === "ALL"}
