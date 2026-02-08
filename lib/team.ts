@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { Task } from "@prisma/client";
+import { Task } from "@/generated/prisma/client";
 
 function calculateWorkload(tasks: Task[]) {
   const now = new Date();

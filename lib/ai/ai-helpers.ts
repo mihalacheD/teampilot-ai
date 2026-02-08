@@ -1,4 +1,4 @@
-import { Task } from "@prisma/client";
+import { Task } from "@/generated/prisma/client";
 import { formatDate } from "@/lib/date";
 
 export type DailySummary = {
