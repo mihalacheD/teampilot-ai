@@ -10,7 +10,7 @@ import {
   TrendingUp,
   ArrowLeft,
 } from "lucide-react";
-import { Task } from "@prisma/client";
+import { Task } from "@/generated/prisma/client";
 import StatCard from "@/components/ui/StatCard";
 import DashboardCard from "@/components/dashboard/DashboardCard";
 import MetricBar from "@/components/ui/MetricBar";

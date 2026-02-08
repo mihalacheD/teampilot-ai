@@ -1,4 +1,4 @@
-import { Task } from "@prisma/client";
+import { Task } from "@/generated/prisma/client";
 import { Flag, Calendar, AlertTriangle } from "lucide-react";
 import { formatDate } from "@/lib/date";
 import { Priority, priorityLabels, priorityStyles } from "@/lib/constants/priority";

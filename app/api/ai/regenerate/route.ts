@@ -16,7 +16,7 @@ import {
 } from "@/lib/api/api-helpers";
 import { checkRateLimit } from "@/lib/ai/ai-rate-limit";
 import OpenAI from "openai";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@/generated/prisma/client";
 import { assertCanRegenerate } from "@/lib/ai/ai-guard";
 
 export async function POST() {
