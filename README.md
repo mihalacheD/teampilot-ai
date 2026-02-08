@@ -52,7 +52,7 @@ not just calling an API.
 
 - Deterministic, structured prompts
 - Output mapped directly to UI components
-- Cached summaries stored in MySQL as JSON
+- Cached summaries stored in Postgres as JSON
 - Regeneration only when explicitly requested
 
 ---
@@ -62,7 +62,7 @@ not just calling an API.
 - **Next.js** (App Router)
 - **TypeScript**
 - **Tailwind CSS**
-- **Prisma + MySQL**
+- **Prisma + Postgres**
 - **OpenAI API**
 - **NextAuth**
 
