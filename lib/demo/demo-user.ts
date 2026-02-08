@@ -1,7 +1,7 @@
 import { DEMO_USERS, DemoRole } from "./demo-constants";
 
 export function isDemoUser(email?: string | null): boolean {
-  return !!email && Object.values(DEMO_USERS).includes(email as any);
+  return !!email && (Object.values(DEMO_USERS) as string[]).includes(email);
 }
 
 export function getDemoRole(email: string): DemoRole | null {
