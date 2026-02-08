@@ -35,51 +35,38 @@ function getPermissions(role?: Role) {
 export function canCreateTask(ctx: PermissionContext): boolean {
   // ✅ ONLY block if explicitly demo
   if (ctx.isDemo === true) return false;
-
   if (!ctx.role) return false;
-
   const permissions = getPermissions(ctx.role);
   if (!permissions) return false;
-
   return permissions.canCreateTask;
 }
 
 export function canEditTask(ctx: PermissionContext): boolean {
   // ✅ ONLY block if explicitly demo
   if (ctx.isDemo === true) return false;
-
   if (!ctx.role) return false;
-
   const permissions = getPermissions(ctx.role);
   if (!permissions) return false;
-
-  if (permissions.canEditAnyTask) return true;
-
-  return ctx.taskUserId === ctx.currentUserId;
+  // ⚠️ DOAR MANAGERII pot edita taskuri
+  return permissions.canEditAnyTask;
 }
 
 export function canDeleteTask(ctx: PermissionContext): boolean {
   // ✅ ONLY block if explicitly demo
   if (ctx.isDemo === true) return false;
-
   if (!ctx.role) return false;
-
   const permissions = getPermissions(ctx.role);
   if (!permissions) return false;
-
   return permissions.canDeleteAnyTask;
 }
 
 export function canChangeTaskStatus(ctx: PermissionContext): boolean {
   // ✅ ONLY block if explicitly demo
   if (ctx.isDemo === true) return false;
-
   if (!ctx.role) return false;
-
   const permissions = getPermissions(ctx.role);
   if (!permissions) return false;
-
   if (permissions.canChangeTaskStatusAny) return true;
-
+  // ✅ EMPLOYEE poate schimba statusul doar la propriile taskuri
   return ctx.taskUserId === ctx.currentUserId;
 }

@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getTodayKey } from "@/lib/ai/ai-helpers";
 
 export const RATE_LIMITS = {
-  MAX_REGENERATIONS_PER_DAY: 3,
+  MAX_REGENERATIONS_PER_DAY: 1,
   CACHE_DURATION_HOURS: 24,
 } as const;
 
@@ -12,7 +12,6 @@ export async function checkRateLimit(): Promise<{
   resetAt: Date;
 }> {
   const today = getTodayKey();
-
   const summary = await prisma.dailySummary.findUnique({
     where: { date: today },
   });
@@ -33,7 +32,6 @@ export async function checkRateLimit(): Promise<{
 
 export async function incrementRegenerateCount(): Promise<void> {
   const today = getTodayKey();
-
   await prisma.dailySummary.upsert({
     where: { date: today },
     update: {
@@ -57,7 +55,7 @@ export async function canGenerateSummary(): Promise<{
   if (!rateLimit.allowed) {
     return {
       canGenerate: false,
-      reason: `Daily limit reached (${RATE_LIMITS.MAX_REGENERATIONS_PER_DAY} regenerations per day)`,
+      reason: `Daily limit reached (${RATE_LIMITS.MAX_REGENERATIONS_PER_DAY} generation per day)`,
       resetAt: rateLimit.resetAt,
     };
   }

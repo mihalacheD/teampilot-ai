@@ -23,7 +23,6 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await getAuthenticatedSession();
-
   if (!session) {
     return unauthorizedResponse();
   }
@@ -52,14 +51,22 @@ export async function PATCH(
       return notFoundResponse("Task not found");
     }
 
-    // Permission check: Employees can only edit their own tasks
-    if (
-      session.user.role === "EMPLOYEE" &&
-      existingTask.userId !== session.user.id
-    ) {
-      return forbiddenResponse("You can only edit your own tasks", {
-        isDemo: false,
-      });
+    // ⚠️ SECURITATE: Verifică permisiuni pentru editare
+    // EMPLOYEE poate schimba DOAR statusul propriilor taskuri
+    if (session.user.role === "EMPLOYEE") {
+      // Verifică dacă încearcă să editeze title/description
+      if (validation.data.title || validation.data.description) {
+        return forbiddenResponse("Only managers can edit task details", {
+          isDemo: false,
+        });
+      }
+      
+      // Verifică dacă e task-ul său pentru schimbare status
+      if (existingTask.userId !== session.user.id) {
+        return forbiddenResponse("You can only change status of your own tasks", {
+          isDemo: false,
+        });
+      }
     }
 
     // Update task
@@ -90,7 +97,6 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await getAuthenticatedSession();
-
   if (!session) {
     return unauthorizedResponse();
   }

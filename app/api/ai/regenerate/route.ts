@@ -27,7 +27,9 @@ export async function POST() {
   }
 
   if (session.user.role !== "MANAGER") {
-    return forbiddenResponse("Only managers can regenerate AI summaries", { isDemo: false });
+    return forbiddenResponse("Only managers can regenerate AI summaries", {
+      isDemo: false,
+    });
   }
 
   try {
@@ -36,14 +38,16 @@ export async function POST() {
     const dailySummary = await prisma.dailySummary.findUnique({
       where: { date: today },
     });
+
     assertCanRegenerate(dailySummary?.regenerateCount);
+
     // 1️⃣ Check rate limit BEFORE regenerating
     const rateLimit = await checkRateLimit();
 
     if (!rateLimit.allowed) {
       return NextResponse.json(
         {
-          error: `Daily regeneration limit reached (3/day). Resets at ${rateLimit.resetAt.toLocaleTimeString()}.`,
+          error: `Daily regeneration limit reached (1 generation per day). Resets at ${rateLimit.resetAt.toLocaleTimeString()}.`,
           rateLimit: {
             remaining: rateLimit.remaining,
             resetAt: rateLimit.resetAt,
@@ -89,7 +93,7 @@ export async function POST() {
       return successResponse({
         summary: emptySummary,
         rateLimit: {
-          remaining: rateLimit.remaining - 1,
+          remaining: 0, // Used the only generation
           resetAt: rateLimit.resetAt,
         },
       });
@@ -136,7 +140,7 @@ export async function POST() {
     return successResponse({
       summary,
       rateLimit: {
-        remaining: rateLimit.remaining - 1,
+        remaining: 0, // Used the only generation
         resetAt: rateLimit.resetAt,
       },
     });

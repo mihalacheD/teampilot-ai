@@ -21,7 +21,6 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 const ROLE_OPTIONS = [
   { value: "EMPLOYEE", label: "Employee - Track and manage tasks" },
-  { value: "MANAGER", label: "Manager - Oversee team and analytics" },
 ];
 
 export default function RegisterPage() {

@@ -37,7 +37,7 @@ export function AISummaryCard() {
 
           {rateLimit && (
             <p className="text-sm text-purple-200 mb-4">
-              {rateLimit.remaining}/3 generations available today
+              {rateLimit.remaining === 1 ? "1 generation available today" : "Daily generation used"}
             </p>
           )}
 
@@ -100,7 +100,7 @@ export function AISummaryCard() {
             <p className={`text-sm mb-3 ${is429 ? "text-yellow-700" : "text-red-700"}`}>{error}</p>
             {rateLimit && (
               <p className="text-xs text-gray-600">
-                Resets at {new Date(rateLimit.resetAt).toLocaleTimeString()}
+                Resets tomorrow at {new Date(rateLimit.resetAt).toLocaleTimeString()}
               </p>
             )}
           </div>
@@ -131,7 +131,7 @@ export function AISummaryCard() {
           <div>
             <h3 className="text-xl font-bold">AI Insights</h3>
             <p className="text-purple-100 text-sm">
-              {cached ? "From today's cache" : "Just generated"}
+              {cached ? "Generated today" : "Just generated"}
             </p>
           </div>
         </div>
@@ -140,7 +140,7 @@ export function AISummaryCard() {
           {/* Rate Limit Badge */}
           {rateLimit && (
             <div className="px-3 py-1.5 bg-white/20 rounded-lg text-xs font-medium">
-              {rateLimit.remaining}/3 left
+              {rateLimit.remaining === 0 ? "Used today" : "1 left today"}
             </div>
           )}
 
@@ -148,7 +148,7 @@ export function AISummaryCard() {
             onClick={generateSummary}
             disabled={loading || (rateLimit?.remaining === 0)}
             className="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            title={rateLimit?.remaining === 0 ? "Daily limit reached" : "Regenerate summary"}
+            title={rateLimit?.remaining === 0 ? "Daily limit reached - resets tomorrow" : "Regenerate summary"}
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           </button>
